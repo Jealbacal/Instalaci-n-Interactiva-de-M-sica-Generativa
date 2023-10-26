@@ -1,1 +1,1 @@
-# Instalaci-n-Interactiva-de-M-sica-Generativa
+# Instalacion-Interactiva-de-Musica-Generativa
