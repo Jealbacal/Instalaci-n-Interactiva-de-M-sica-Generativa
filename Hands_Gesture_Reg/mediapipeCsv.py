@@ -6,7 +6,8 @@ import numpy as np
 from pprint import pprint
 import csv
 import os
-
+import copy
+import itertools
 
 MARGIN = 10  # pixels
 FONT_SIZE = 1
@@ -112,6 +113,42 @@ def singname_to_label(name):
             return None
 
 
+def absolute_landmarks(image,landmarks):
+    landmarks_abs=[]
+    
+    for landmark in landmarks:
+
+        landmark_x = min (int (landmark.x * image.width), image.width -1)
+        landmark_y = min (int(landmark.y * image.height), image.height -1)
+
+        landmarks_abs.append([landmark_x,landmark_y])
+
+    return landmarks_abs
+
+def normalize_landmarks(landmark_abs):
+    temp= copy.deepcopy(landmark_abs)
+
+    base_x, base_y =0,0
+
+    for index, landmark in enumerate(temp):
+        if index == 0:
+            base_x,base_y = landmark[0], landmark[1]
+        
+        temp[index][0] = temp[index][0] - base_x
+        temp[index][1] = temp[index][1] - base_y
+
+    temp = list(itertools.chain.from_iterable(temp))
+
+    max_value = max(list(map(abs,temp)))
+
+    def normalize(n):
+        return n/max_value
+    
+    temp = list(map(normalize,temp))
+
+    return temp
+
+
 with HandLandmarker.create_from_options(options) as landmarker:
     landmark_list = []
     root = 'imagenes'
@@ -128,8 +165,8 @@ with HandLandmarker.create_from_options(options) as landmarker:
                 hand_landmarker_result = landmarker.detect(mp_image)
                 # pprint(hand_landmarker_result.hand_landmarks)
                 if hand_landmarker_result.hand_landmarks:
-                    landmark_list = [coord for hand_landmark in hand_landmarker_result.hand_landmarks[0] for coord in (
-                        hand_landmark.x, hand_landmark.y)]
+                    landmark_list_abs = absolute_landmarks(mp_image,hand_landmarker_result.hand_landmarks[0])
+                    landmark_list=normalize_landmarks(landmark_list_abs)
 
                     with open('landmarks.csv', 'a', newline="") as f:
                         writer = csv.writer(f)
@@ -139,7 +176,8 @@ with HandLandmarker.create_from_options(options) as landmarker:
     # mp_image = mp.Image.create_from_file(
     #     'imagenes/call/0d303909-120a-41e9-9005-e445e955982d.jpg')
     # hand_landmarker_result = landmarker.detect(mp_image)
-    # pprint(hand_landmarker_result.hand_landmarks)
+    
+    # pprint(normalize_landmarks(absolute_landmarks(mp_image,hand_landmarker_result.hand_landmarks[0])))
 
     # landmark_list = [coord for hand_landmark in hand_landmarker_result.hand_landmarks[0]
     #                  for coord in (hand_landmark.x, hand_landmark.y)]
