@@ -5,6 +5,7 @@ import itertools
 import copy
 from pythonosc import udp_client
 from pythonosc.osc_message_builder import OscMessageBuilder
+import time
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -14,6 +15,9 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 video = cv2.VideoCapture(0)
 OSC_ADDRESS = "/mediapipe/hands"
+client = udp_client.SimpleUDPClient("127.0.0.1", 7500)
+client2 = udp_client.SimpleUDPClient("127.0.0.1", 8080)
+
 
 def absolute_landmarks(width,height,landmarks):
     landmarks_abs=[]
@@ -48,7 +52,9 @@ def normalize_landmarks(landmark_abs):
     
     temp = list(map(normalize,temp))
 
-    return temp
+    result=[(temp[i], temp[i + 1]) for i in range(0, len(temp), 2)]
+
+    return result
 
 def traducir(label):
     if label == 'palm':
@@ -82,19 +88,48 @@ def send_hands(client: udp_client,
 
     # msg = builder.build()
     # client.send(msg)
+def numerics_gest(landmarks):
+
+    if ((abs(landmarks[0][0] - landmarks[20][0]) < 0.2) and 
+        ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2)) and 
+        ((abs(landmarks[0][0] - landmarks[12][0]) < 0.2)) and
+        (abs(landmarks[7][0] - landmarks[4][0]) < 0.2)
+       ) :
+            return 1
+    
+    elif ((abs(landmarks[0][0] - landmarks[20][0]) < 0.2) and 
+          ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2)) and 
+          ((abs(landmarks[0][0] - landmarks[12][0]) < 0.2))   
+         ) :
+            return 2
+    
+    elif ((abs(landmarks[0][0] - landmarks[20][0]) < 0.2) and 
+          ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2)) 
+         ) :
+            return 3
+    
+    elif ((abs(landmarks[17][0] - landmarks[4][0]) < 0.2) 
+         ) :
+            return 4
+    
+    else:
+            return 5
 
 
 # Create a image segmenter instance with the live stream mode:
 def print_result(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
     # cv2.imshow('Show', output_image.numpy_view())
     # imright = output_image.numpy_view()
-    print(result.gestures)
+    #print(result.gestures)
     hand_landmarks = result.hand_landmarks
     try:
+        
         for landmark in hand_landmarks:
-            normalize_landmarks(absolute_landmarks(output_image.width,output_image.height,landmark))
+           pprint( numerics_gest(normalize_landmarks(absolute_landmarks(output_image.width,output_image.height,landmark))))
 
-        send_hands(client,result)    
+            
+        send_hands(client,result) 
+        send_hands(client2,result)   
     except Exception as e:
         print(e)
     #pprint(result.hand_world_landmarks[0])
@@ -107,7 +142,7 @@ def print_result(result: GestureRecognizerResult, output_image: mp.Image, timest
 #model_path = '..\models\gesture_recognizer.task'
 
 options = GestureRecognizerOptions(
-    base_options=BaseOptions(model_asset_path='..\models\gesture_recognizer.task'),
+    base_options=BaseOptions(model_asset_path='..\models\gesture_recognizer.task',delegate= 1),
     running_mode=VisionRunningMode.LIVE_STREAM,
     result_callback=print_result,
     num_hands=2)
@@ -116,13 +151,19 @@ options = GestureRecognizerOptions(
 
 
 timestamp = 0
-client = udp_client.SimpleUDPClient("127.0.0.1", 7500)
+# used to record the time when we processed last frame 
+prev_frame_time = 0
+  
+# used to record the time at which we processed current frame 
+new_frame_time = 0
 
 with GestureRecognizer.create_from_options(options) as recognizer:
   # The recognizer is initialized. Use it here.
     while video.isOpened(): 
         # Capture frame-by-frame
         ret, frame = video.read()
+        frame=cv2.resize(frame,(800,600))
+        frame=cv2.flip(frame,1)
 
         if not ret:
             print("Ignoring empty frame")
@@ -136,7 +177,14 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         # The results are accessible via the `result_callback` provided in
         # the `GestureRecognizerOptions` object.
         # The gesture recognizer must be created with the live stream mode.
+        new_frame_time = time.time()
         recognizer.recognize_async(mp_image, timestamp)
+        fps = 1/(new_frame_time-prev_frame_time) 
+        prev_frame_time = new_frame_time 
+
+        cv2.putText(frame,str(int(fps))+"FPS", (6,150), cv2.FONT_HERSHEY_SIMPLEX,1,(173, 255, 250),2,cv2.LINE_AA )
+        cv2.putText(frame,str(timestamp)+"inf", (6,70), cv2.FONT_HERSHEY_SIMPLEX,1,(173, 255, 250),2,cv2.LINE_AA )
+
         cv2.imshow('MediaPipe Hands', frame)
         if cv2.waitKey(5) & 0xFF == 27:
             break
