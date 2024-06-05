@@ -21,7 +21,7 @@ OSC_ADDRESS_HAND = "/mediapipe/hands/hand"
 OSC_ADDRESS_POS = "/mediapipe/hands/pos"
 OSC_ADDRESS_NUM_GEST = "/mediapipe/hands/num_gest"
 
-client = udp_client.SimpleUDPClient("192.168.43.91", 7500)
+client = udp_client.SimpleUDPClient("127.0.0.1", 7500)
 
 
 def absolute_landmarks(width, height, landmarks):
@@ -85,17 +85,19 @@ def send_hands(
         client.send_message(OSC_ADDRESS_GEST, 85)
         return
  
-    # msg = OscMessageBuilder(OSC_ADDRESS)
-    # msg.add_arg(gest)
-    # msg.add_arg(handedness)
-    # msg.add_arg(coord)
-    # msg.add_arg(numerics)
+    msg = OscMessageBuilder(address=OSC_ADDRESS)
+    msg.add_arg(gest)
+    msg.add_arg(handedness)
+    msg.add_arg(coord[0])
+    msg.add_arg(coord[1])
+    msg.add_arg(numerics)
+    msg = msg.build()
 
-    #client.send(msg)
-    client.send_message(OSC_ADDRESS_GEST,gest)
-    client.send_message(OSC_ADDRESS_HAND,handedness)
-    client.send_message(OSC_ADDRESS_POS,coord)
-    client.send_message(OSC_ADDRESS_NUM_GEST,numerics)
+    client.send(msg)
+    # client.send_message(OSC_ADDRESS_GEST,gest)
+    # client.send_message(OSC_ADDRESS_HAND,handedness)
+    # client.send_message(OSC_ADDRESS_POS,coord)
+    # client.send_message(OSC_ADDRESS_NUM_GEST,numerics)
     
 
 
@@ -143,20 +145,31 @@ def print_result(
         absolute = []
         numerics = 0
         gest,label = -1,-1
-        for landmark in hand_landmarks:
-            print (landmark[0])
+        # for landmark in hand_landmarks:
+        #     print (landmark[0])
+        #     absolute = absolute_landmarks(
+        #         output_image.width, output_image.height, landmark
+        #     )
+        #     numerics = numerics_gest(normalize_landmarks(absolute))
+        #     print(numerics)
+        #     for gesture in gestures:
+        #         print(gesture[0].category_name)
+        #         gest = traducir(gesture[0].category_name)
+
+        #         for hand in handedness:
+        #             label =  1 if hand[0].category_name == 'Right' else 0
+        #             send_hands(client, gest,label, absolute[9], numerics)
+        for i in range (0,2):
+            print (hand_landmarks[i][0])
             absolute = absolute_landmarks(
-                output_image.width, output_image.height, landmark
+                output_image.width, output_image.height, hand_landmarks[i]
             )
             numerics = numerics_gest(normalize_landmarks(absolute))
             print(numerics)
-            for gesture in gestures:
-                print(gesture[0].category_name)
-                gest = traducir(gesture[0].category_name)
-
-                for hand in handedness:
-                    label =  1 if hand[0].category_name == 'Right' else 0
-                    send_hands(client, gest,label, absolute[9], numerics)
+            print(gestures[i][0].category_name)
+            gest = traducir(gestures[i][0].category_name)
+            label =  1 if handedness[i][0].category_name == 'Right' else 0
+            send_hands(client, gest,label, absolute[9], numerics)
 
     except Exception as e:
         print(e)

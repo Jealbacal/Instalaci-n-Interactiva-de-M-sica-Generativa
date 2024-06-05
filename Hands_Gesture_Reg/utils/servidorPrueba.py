@@ -7,7 +7,13 @@ def handler(address, *args):
 
 # Crea un despachador y registra la función de manejo de mensajes
 dispatcher = Dispatcher()
+
 dispatcher.map("/mediapipe/hands", handler)  # Mapea todos los mensajes OSC a esta función
+# dispatcher.map("/mediapipe/hands/gest", handler)  # Mapea todos los mensajes OSC a esta función
+# dispatcher.map("/mediapipe/hands/hand", handler)  # Mapea todos los mensajes OSC a esta función
+# dispatcher.map("/mediapipe/hands/pos", handler)  # Mapea todos los mensajes OSC a esta función
+# dispatcher.map("/mediapipe/hands/num_gest", handler)  # Mapea todos los mensajes OSC a esta función
+
 
 # Configura el servidor OSC para escuchar en el puerto 8080
 server = BlockingOSCUDPServer(("127.0.0.1", 7500), dispatcher)
