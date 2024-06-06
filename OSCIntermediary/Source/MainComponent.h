@@ -24,22 +24,39 @@ private:
     //==============================================================================
     int currentPortNumber = -1;
 
+    struct handParams
+    {
+        int newGesture     = 0,
+            timesSeenGest  = 0,
+            currentGesture = 0,
+            newNumeric     = 0,
+            timesSeenNum   = 0,
+            currentNumeric = 0,
+            x              = 0,
+            y              = 0;
+    } leftHand, rightHand;
+
     juce::TextEditor logScreen;
 
     juce::Slider testSlider;
 
     juce::OSCSender senderEC2; // The sender for EmissionControl2
 
-    void oscMessageReceived         (const juce::OSCMessage& message) override;
-    void showConnectionErrorMessage (const juce::String& message);
-    void logMessage                 (const juce::String& m);
+    void oscMessageReceived         (const juce::OSCMessage&) override;
+    void showConnectionErrorMessage (const juce::String&);
+    void showArgumentErrorMessage   (const juce::String&);
+    void logMessage                 (const juce::String&);
 
     //==============================================================================
-    void handleConnectError (int failedPort);
+    void handleConnectError (int);
     void handleDisconnectError();
     void handleInvalidPortNumberEntered();
 
-    juce::String OSCArgToString (const juce::OSCArgument& arg);
+    //==============================================================================
+    void updateHands (handParams&, int, int, int, int, int);
+    bool resend (juce::String&);
+
+    juce::String OSCArgToString (const juce::OSCArgument&);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

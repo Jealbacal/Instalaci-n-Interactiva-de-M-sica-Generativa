@@ -27,7 +27,7 @@ MainComponent::MainComponent()
     testSlider.onValueChange = [this]
         {
             // create and send an OSC message with an address and a float value:
-            if (!senderEC2.send ("/juce/test", (float) testSlider.getValue()))
+            if (! senderEC2.send ("/juce/grainrate", (float) testSlider.getValue()))
                 showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
         };
 }
@@ -59,22 +59,78 @@ void MainComponent::resized()
 //===============================================================================
 void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
 {
-    logMessage("mensaje recibido");
+    if (message.size() != 5)
+    {
+        showArgumentErrorMessage ("Error: invalid size of message");
+        return;
+    }
 
-    logMessage (" - Received OSC message with address "
+    for (auto arg : message)
+        if (! arg.isInt32())
+        {
+            showArgumentErrorMessage ("Error: some argument is not Int32");
+            return;
+        }
+    
+    /*logMessage (" - Received OSC message with address "
                 + message.getAddressPattern().toString()
                 + " with "
                 + juce::String (message.size())
-                + " argument(s):");
+                + " argument(s):");*/
 
-    for (juce::OSCArgument arg : message)
-        logMessage (OSCArgToString (arg));
+    logScreen.clear();
+
+    logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()));
+    logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()));
+    logMessage (" -- X position -> "      + juce::String (message[2].getInt32()));
+    logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()));
+    logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()));
+    
+    switch (message[1].getInt32())
+    {
+    case 0: // Update left hand
+        updateHands (leftHand,
+                     message[0].getInt32(),
+                     message[1].getInt32(),
+                     message[2].getInt32(),
+                     message[3].getInt32(),
+                     message[4].getInt32());
+        break;
+
+    case 1: // Update right hand
+        updateHands (rightHand,
+                     message[0].getInt32(),
+                     message[1].getInt32(),
+                     message[2].getInt32(),
+                     message[3].getInt32(),
+                     message[4].getInt32());
+        break;
+
+    default: // Error
+        showArgumentErrorMessage ("Error: do you have three hands???");
+        return;
+    }
+
+    juce::String error = "";
+    if (! resend (error)) showConnectionErrorMessage (error);
+
+    /*for (juce::OSCArgument arg : message)
+        logMessage (OSCArgToString (arg));*/
+
 }
 
 void MainComponent::showConnectionErrorMessage (const juce::String& message)
 {
     juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
                                             "Connection error",
+                                            message,
+                                            "OK");
+}
+
+void MainComponent::showArgumentErrorMessage (const juce::String& message)
+{
+    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
+                                            "Argument error",
                                             message,
                                             "OK");
 }
@@ -111,6 +167,61 @@ void MainComponent::handleInvalidPortNumberEntered()
 }
 
 //=============================================================================
+void MainComponent::updateHands (handParams& params, int gest, int hand, int x, int y, int num)
+{
+            // Repetition check for gesture
+            if (gest == params.newGesture) params.timesSeenGest++;
+            else                           params.timesSeenGest = 0;
+
+            params.newGesture = gest;
+
+            if (params.timesSeenGest == 10) params.currentGesture = params.newGesture; // En metodo aparte?????????????
+
+            // Repetition check for numeric gesture
+            if (num == params.newNumeric) params.timesSeenNum++;
+            else                          params.timesSeenNum = 0;
+
+            params.newNumeric = num;
+
+            if (params.timesSeenNum == 10) params.currentNumeric = params.newNumeric; // En metodo aparte?????????????
+
+            // X and Y
+            params.x = x;
+            params.y = y;
+}
+
+bool MainComponent::resend (juce::String& e)
+{
+    if (! senderEC2.send ("/juce/soundfile", (float) leftHand.currentNumeric))
+    {
+        e = "Error: could not send sound file to Emission Control 2";
+        return false;
+    }
+    
+    if (! senderEC2.send ("/juce/filterfreq", (float) rightHand.x))
+    {
+        e = "Error: could not send filter frequency to Emission Control 2";
+        return false;
+    }
+
+    if (! senderEC2.send ("/juce/filterq", (float) rightHand.y))
+    {
+        e = "Error: could not send filter Q to Emission Control 2";
+        return false;
+    }
+
+    return true;
+}
+
+/**
+    * Deprecated/Unused |
+    *
+    * Translates an OSCArgument to its type and value.
+    * For example, 0.835 will be shown as "Float32 -> 0.835"
+    *
+    * @param arg : A single argument from a juce::OSCMessage object
+    * @return Translation of the given argument
+    */
 juce::String MainComponent::OSCArgToString (const juce::OSCArgument& arg)
 {
     if      (arg.isFloat32()) return "Float32 -> " + juce::String (arg.getFloat32());
