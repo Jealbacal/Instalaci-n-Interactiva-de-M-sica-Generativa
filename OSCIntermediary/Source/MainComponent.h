@@ -40,6 +40,8 @@ private:
 
     juce::Slider testSlider;
 
+    juce::ComboBox testCombo;
+
     juce::OSCSender senderEC2; // The sender for EmissionControl2
 
     void oscMessageReceived         (const juce::OSCMessage&) override;

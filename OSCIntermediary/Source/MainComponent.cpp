@@ -21,6 +21,21 @@ MainComponent::MainComponent()
     testSlider.setTextBoxStyle (juce::Slider::TextBoxAbove, true, 150, 25);
     addAndMakeVisible (&testSlider);
 
+    testCombo.setText ("Preset:");
+    testCombo.addItem ("1", 1);
+    testCombo.addItem ("2", 2);
+    testCombo.addItem ("3", 3);
+    testCombo.addItem ("4", 4);
+    testCombo.addItem ("7", 7);
+    testCombo.addItem ("10", 10);
+    addAndMakeVisible (&testCombo);
+
+    testCombo.onChange = [this]
+        {
+            if (! senderEC2.send ("/juce/preset", (float) testCombo.getSelectedId()))
+                showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
+        };
+
     if (! senderEC2.connect ("127.0.0.1", 7501))
         showConnectionErrorMessage ("Error: could not connect Emission Control 2 sender to UDP port 7501");
 
@@ -52,6 +67,8 @@ void MainComponent::resized()
     auto logScreenArea = area.removeFromBottom (logScreenHeight);
 
     logScreen.setBounds (logScreenArea.reduced (5));
+
+    testCombo.setBounds (area.removeFromLeft (area.getWidth() / 2).reduced (10));
 
     testSlider.setBounds (area.reduced (10));
 }
@@ -175,7 +192,7 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
             params.newGesture = gest;
 
-            if (params.timesSeenGest == 10) params.currentGesture = params.newGesture; // En metodo aparte?????????????
+            if (params.timesSeenGest == 10) params.currentGesture = params.newGesture;
 
             // Repetition check for numeric gesture
             if (num == params.newNumeric) params.timesSeenNum++;
@@ -183,7 +200,7 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
             params.newNumeric = num;
 
-            if (params.timesSeenNum == 10) params.currentNumeric = params.newNumeric; // En metodo aparte?????????????
+            if (params.timesSeenNum == 10) params.currentNumeric = params.newNumeric;
 
             // X and Y
             params.x = x;
