@@ -209,9 +209,9 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
 bool MainComponent::resend (juce::String& e)
 {
-    if (! senderEC2.send ("/juce/soundfile", (float) leftHand.currentNumeric))
+    if (! senderEC2.send ("/juce/preset", (float) leftHand.currentNumeric))
     {
-        e = "Error: could not send sound file to Emission Control 2";
+        e = "Error: could not send preset to Emission Control 2";
         return false;
     }
     
