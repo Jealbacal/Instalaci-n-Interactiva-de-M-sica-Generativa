@@ -2,6 +2,9 @@ import mediapipe as mp
 import cv2
 from pprint import pprint
 from functions import *
+import numpy as np
+import statistics as st
+from collections import deque
 
 from pythonosc import udp_client
 from pythonosc.osc_message_builder import OscMessageBuilder
@@ -16,6 +19,13 @@ class Sender ():
     def __init__(self,ip,port):
         self.client = udp_client.SimpleUDPClient(ip, port)
         self.OSC_ADDRESS = "/mediapipe/hands"
+        buffer_size = 10
+        self.gest_buffer = deque(maxlen=buffer_size)
+        self.hand_buffer = deque(maxlen=buffer_size)
+        self.coord_buffer = deque(maxlen=buffer_size)
+        self.numerics_buffer = deque(maxlen=buffer_size)
+
+        
 
     
     def send_hands(
@@ -25,12 +35,33 @@ class Sender ():
         msg = OscMessageBuilder(address=self.OSC_ADDRESS)
         msg.add_arg(gest)
         msg.add_arg(handedness)
-        msg.add_arg(coord[0])
-        msg.add_arg(coord[1])
+        msg.add_arg(int(coord[0]))
+        msg.add_arg(int(coord[1]))
         msg.add_arg(numerics)
         msg = msg.build()
 
         self.client.send(msg)
+
+
+    def update_buffer(self,gest:int,hadedness:int,coord:list,numerics:int):
+
+        self.gest_buffer.append(gest)
+        self.hand_buffer.append(hadedness)
+        self.numerics_buffer.append(numerics)
+        self.coord_buffer.append(coord)
+
+        if len(self.gest_buffer) == 10:
+            avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
+            mode_gest = st.mode(self.gest_buffer)
+            mode_hand = st.mode(self.hand_buffer)
+            mode_numeric = st.mode(self.numerics_buffer)
+
+            self.send_hands(mode_gest,mode_hand,avg_coord,mode_numeric)
+            
+            self.gest_buffer.clear()
+            self.coord_buffer.clear()
+            self.hand_buffer.clear()
+            self.numerics_buffer.clear()
 
 
 
@@ -143,7 +174,7 @@ class Inference ():
                 print(gestures[i][0].category_name)
                 gest = traducir(gestures[i][0].category_name)
                 label =  1 if handedness[i][0].category_name == 'Right' else 0
-                self.sender.send_hands (gest,label, absolute[9], numerics)
+                self.sender.update_buffer (gest,label, absolute[9], numerics)
 
         except Exception as e:
             print(e)
