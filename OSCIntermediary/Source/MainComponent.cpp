@@ -192,7 +192,7 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
             params.newGesture = gest;
 
-            if (params.timesSeenGest == 10) params.currentGesture = params.newGesture;
+            /*if (params.timesSeenGest == 10)*/ params.currentGesture = params.newGesture;
 
             // Repetition check for numeric gesture
             if (num == params.newNumeric) params.timesSeenNum++;
@@ -200,7 +200,7 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
             params.newNumeric = num;
 
-            if (params.timesSeenNum == 10) params.currentNumeric = params.newNumeric;
+            /*if (params.timesSeenNum == 10)*/ params.currentNumeric = params.newNumeric;
 
             // X and Y
             params.x = x;
