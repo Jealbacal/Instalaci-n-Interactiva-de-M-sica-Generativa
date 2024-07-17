@@ -81,7 +81,7 @@ class Inference ():
 
         options = GestureRecognizerOptions(
             base_options=BaseOptions(
-                model_asset_path="models/gesture_recognizer.task"  # Corregido el separador de ruta
+                model_asset_path="utils/gesture_recognizer.task"  # Corregido el separador de ruta
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
             result_callback=self.print_result,  # Corregido: pasar referencia a la función
