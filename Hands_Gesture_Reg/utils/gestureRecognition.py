@@ -18,50 +18,105 @@ class Sender ():
 
     def __init__(self,ip,port):
         self.client = udp_client.SimpleUDPClient(ip, port)
-        self.OSC_ADDRESS = "/mediapipe/hands"
+        self.OSC_ADDRESS1 = "/mediapipe/handsR"
+        self.OSC_ADDRESS2 = "/mediapipe/posR"
+        self.OSC_ADDRESS3 = "/mediapipe/handsL"
+        self.OSC_ADDRESS4 = "/mediapipe/posL"
         buffer_size = 10
-        self.gest_buffer = deque(maxlen=buffer_size)
-        self.hand_buffer = deque(maxlen=buffer_size)
-        self.coord_buffer = deque(maxlen=buffer_size)
-        self.numerics_buffer = deque(maxlen=buffer_size)
+        self.gest_buffer_1 = deque(maxlen=buffer_size)
+        #self.hand_buffer_1= deque(maxlen=buffer_size)
+        self.numerics_buffer_1 = deque(maxlen=buffer_size)
+        self.gest_buffer_2 = deque(maxlen=buffer_size)
+        #self.hand_buffer_2= deque(maxlen=buffer_size)
+        self.numerics_buffer_2 = deque(maxlen=buffer_size)
 
         
 
     
-    def send_hands(
-    self, gest:int, handedness: int, coord: list, numerics: int
+    def send_hands_right(
+    self, gest:int, numerics: int
     ):
         
-        msg = OscMessageBuilder(address=self.OSC_ADDRESS)
+        msg = OscMessageBuilder(address=self.OSC_ADDRESS1)
         msg.add_arg(gest)
-        msg.add_arg(handedness)
-        msg.add_arg(int(coord[0]))
-        msg.add_arg(int(coord[1]))
+        #msg.add_arg(handedness)
+        # msg.add_arg(int(coord[0]))
+        # msg.add_arg(int(coord[1]))
         msg.add_arg(numerics)
         msg = msg.build()
 
         self.client.send(msg)
 
+    def send_hands_left(
+    self, gest:int,  numerics: int
+    ):
+        
+        msg = OscMessageBuilder(address=self.OSC_ADDRESS3)
+        msg.add_arg(gest)
+        #msg.add_arg(handedness)
+        # msg.add_arg(int(coord[0]))
+        # msg.add_arg(int(coord[1]))
+        msg.add_arg(numerics)
+        msg = msg.build()
 
-    def update_buffer(self,gest:int,hadedness:int,coord:list,numerics:int):
+        self.client.send(msg)
 
-        self.gest_buffer.append(gest)
-        self.hand_buffer.append(hadedness)
-        self.numerics_buffer.append(numerics)
-        self.coord_buffer.append(coord)
+    def send_coords_right(self,coord:list):
+        msg = OscMessageBuilder(address=self.OSC_ADDRESS2)
+        msg.add_arg(int(coord[0]))
+        msg.add_arg(int(coord[1]))
+        msg = msg.build()
 
-        if len(self.gest_buffer) == 10:
-            avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
-            mode_gest = st.mode(self.gest_buffer)
-            mode_hand = st.mode(self.hand_buffer)
-            mode_numeric = st.mode(self.numerics_buffer)
+        self.client.send(msg)
 
-            self.send_hands(mode_gest,mode_hand,avg_coord,mode_numeric)
+    def send_coords_left(self,coord:list):
+        msg = OscMessageBuilder(address=self.OSC_ADDRESS4)
+        msg.add_arg(int(coord[0]))
+        msg.add_arg(int(coord[1]))
+        msg = msg.build()
+
+        self.client.send(msg)
+
+
+    def update_buffer_right(self,gest:int,numerics:int):
+
+        self.gest_buffer_1.append(gest)
+        #self.hand_buffer.append(hadedness)
+        self.numerics_buffer_1.append(numerics)
+        #self.coord_buffer.append(coord)
+
+        if len(self.gest_buffer_1) == 10:
+            #avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
+            mode_gest = st.mode(self.gest_buffer_1)
+            #mode_hand = st.mode(self.hand_buffer)
+            mode_numeric = st.mode(self.numerics_buffer_1)
+
+            self.send_hands_right(mode_gest,mode_numeric)
             
-            self.gest_buffer.clear()
-            self.coord_buffer.clear()
-            self.hand_buffer.clear()
-            self.numerics_buffer.clear()
+            self.gest_buffer_1.clear()
+            #self.coord_buffer.clear()
+            #self.hand_buffer_1.clear()
+            self.numerics_buffer_1.clear()
+
+    def update_buffer_left(self,gest:int,numerics:int):
+
+        self.gest_buffer_2.append(gest)
+        #self.hand_buffer.append(hadedness)
+        self.numerics_buffer_2.append(numerics)
+        #self.coord_buffer.append(coord)
+
+        if len(self.gest_buffer_2) == 10:
+            #avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
+            mode_gest = st.mode(self.gest_buffer_2)
+            #mode_hand = st.mode(self.hand_buffer)
+            mode_numeric = st.mode(self.numerics_buffer_2)
+
+            self.send_hands_left(mode_gest,mode_numeric)
+            
+            self.gest_buffer_2.clear()
+            #self.coord_buffer.clear()
+            #self.hand_buffer_1.clear()
+            self.numerics_buffer_2.clear()
 
 
 
@@ -165,16 +220,22 @@ class Inference ():
             numerics = 0
             gest,label = -1,-1
             for i in range (0,2):
-                print (hand_landmarks[i][0])
                 absolute = absolute_landmarks(
                     output_image.width, output_image.height, hand_landmarks[i]
                 )
                 numerics = numerics_gest(normalize_landmarks(absolute))
-                print(numerics)
-                print(gestures[i][0].category_name)
                 gest = traducir(gestures[i][0].category_name)
                 label =  1 if handedness[i][0].category_name == 'Right' else 0
-                self.sender.update_buffer (gest,label, absolute[9], numerics)
+                
+
+                if label == 1:
+                    self.sender.update_buffer_right(gest,numerics)
+                    self.sender.send_coords_right(absolute[9])
+
+                else:
+                    self.sender.update_buffer_left(gest,numerics)
+                    self.sender.send_coords_left(absolute[9])
+
 
         except Exception as e:
             print(e)
