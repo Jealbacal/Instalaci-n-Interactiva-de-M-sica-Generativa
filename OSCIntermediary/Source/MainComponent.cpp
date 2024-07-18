@@ -22,10 +22,13 @@ MainComponent::MainComponent()
     if (! connect (7500))
         showConnectionErrorMessage ("Error: could not connect receiver to UDP port 7500");
 
-    addListener (this, "/mediapipe/hands");
+    addListener (this, "/mediapipe/handsL");
+    addListener (this, "/mediapipe/handsR");
+    addListener (this, "/mediapipe/posL");
+    addListener (this, "/mediapipe/posR");
 
-    testSlider.setRange (0.1, 100.0);
-    testSlider.setSliderStyle (juce::Slider::LinearHorizontal);
+    testSlider.setRange        (0.1, 100.0);
+    testSlider.setSliderStyle  (juce::Slider::LinearHorizontal);
     testSlider.setTextBoxStyle (juce::Slider::TextBoxAbove, true, 150, 25);
     addAndMakeVisible (&testSlider);
 
@@ -44,15 +47,15 @@ MainComponent::MainComponent()
                 showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
         };
 
-    if (! senderEC2.connect ("127.0.0.1", 7501))
-        showConnectionErrorMessage ("Error: could not connect Emission Control 2 sender to UDP port 7501");
-
     testSlider.onValueChange = [this]
         {
             // create and send an OSC message with an address and a float value:
             if (! senderEC2.send ("/juce/grainrate", (float) testSlider.getValue()))
                 showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
         };
+
+    if (! senderEC2.connect ("127.0.0.1", 7501))
+        showConnectionErrorMessage ("Error: could not connect Emission Control 2 sender to UDP port 7501");
 }
 
 MainComponent::~MainComponent()
@@ -88,75 +91,111 @@ void MainComponent::resized()
 //===============================================================================
 void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
 {
-    if (message.size() != 5)
+    /*if (message.size() != 5)
     {
         showArgumentErrorMessage ("Error: invalid size of message");
         return;
-    }
+    }*/
 
-    for (auto arg : message)
+    /*for (auto arg : message)
         if (! arg.isInt32())
         {
             showArgumentErrorMessage ("Error: some argument is not Int32");
             return;
-        }
+        }*/
     
     /*logMessage (" - Received OSC message with address "
                 + message.getAddressPattern().toString()
                 + " with "
                 + juce::String (message.size())
                 + " argument(s):");*/
-    
-    switch (message[1].getInt32())
+
+    if (message.getAddressPattern() == "/mediapipe/handsL")
     {
-    case 0: // Update left hand
         leftHand.gesture = message[0].getInt32();
-        leftHand.x       = message[2].getInt32();
-        leftHand.y       = message[3].getInt32();
-        leftHand.numeric = message[4].getInt32();
-
-        logScreenL.clear();
-
-        logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 0);
-        logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 0);
-        logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 0);
-        logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 0);
-        logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 0);
-
-        /*updateHands (leftHand_old,
-                     message[0].getInt32(),
-                     message[1].getInt32(),
-                     message[2].getInt32(),
-                     message[3].getInt32(),
-                     message[4].getInt32());*/
-        break;
-
-    case 1: // Update right hand
-        rightHand.gesture = message[0].getInt32();
-        rightHand.x       = message[2].getInt32();
-        rightHand.y       = message[3].getInt32();
-        rightHand.numeric = message[4].getInt32();
-        
-        logScreenL.clear();
-
-        logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 1);
-        logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 1);
-        logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 1);
-        logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 1);
-        logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 1);
-        
-        /*updateHands (rightHand_old,
-                     message[0].getInt32(),
-                     message[1].getInt32(),
-                     message[2].getInt32(),
-                     message[3].getInt32(),
-                     message[4].getInt32());*/
-        break;
-
-    default: // Error
-        showArgumentErrorMessage ("Error: do you have three hands???");
-        return;
+        leftHand.numeric = message[1].getInt32();
     }
+    else if (message.getAddressPattern() == "/mediapipe/handsR")
+    {
+        rightHand.gesture = message[0].getInt32();
+        rightHand.numeric = message[1].getInt32();
+    }
+    else if (message.getAddressPattern() == "/mediapipe/posL")
+    {
+        leftHand.x = message[0].getInt32();
+        leftHand.y = message[1].getInt32();
+    }
+    else if (message.getAddressPattern() == "/mediapipe/posR")
+    {
+        rightHand.x = message[0].getInt32();
+        rightHand.y = message[1].getInt32();
+    }
+    
+    logScreenL.clear();
+    logScreenR.clear();
+
+    logMessage (" -- Gesture -> "         + juce::String (leftHand.gesture), 0);
+    logMessage (" -- Hand -> 0", 0);
+    logMessage (" -- X position -> "      + juce::String (leftHand.x), 0);
+    logMessage (" -- Y position -> "      + juce::String (leftHand.y), 0);
+    logMessage (" -- Numeric gesture -> " + juce::String (leftHand.numeric), 0);
+
+    logMessage (" -- Gesture -> "         + juce::String (rightHand.gesture), 0);
+    logMessage (" -- Hand -> 1", 0);
+    logMessage (" -- X position -> "      + juce::String (rightHand.x), 0);
+    logMessage (" -- Y position -> "      + juce::String (rightHand.y), 0);
+    logMessage (" -- Numeric gesture -> " + juce::String (rightHand.numeric), 0);
+
+    //switch (message[1].getInt32())
+    //{
+    //case 0: // Update left hand
+    //    leftHand.gesture = message[0].getInt32();
+    //    leftHand.x       = message[2].getInt32();
+    //    leftHand.y       = message[3].getInt32();
+    //    leftHand.numeric = message[4].getInt32();
+
+    //    logScreenL.clear();
+
+    //    logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 0);
+    //    logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 0);
+    //    logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 0);
+    //    logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 0);
+    //    logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 0);
+
+    //    /*updateHands (leftHand_old,
+    //                 message[0].getInt32(),
+    //                 message[1].getInt32(),
+    //                 message[2].getInt32(),
+    //                 message[3].getInt32(),
+    //                 message[4].getInt32());*/
+    //    break;
+
+    //case 1: // Update right hand
+    //    rightHand.gesture = message[0].getInt32();
+    //    rightHand.x       = message[2].getInt32();
+    //    rightHand.y       = message[3].getInt32();
+    //    rightHand.numeric = message[4].getInt32();
+    //    
+    //    logScreenL.clear();
+
+    //    logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 1);
+    //    logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 1);
+    //    logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 1);
+    //    logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 1);
+    //    logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 1);
+    //    
+    //    /*updateHands (rightHand_old,
+    //                 message[0].getInt32(),
+    //                 message[1].getInt32(),
+    //                 message[2].getInt32(),
+    //                 message[3].getInt32(),
+    //                 message[4].getInt32());*/
+    //    break;
+
+    //default: // Error
+    //    showArgumentErrorMessage ("Error: do you have three hands???");
+    //    return;
+    //}
 
     juce::String error = "";
     if (! resend (error)) showConnectionErrorMessage (error);
