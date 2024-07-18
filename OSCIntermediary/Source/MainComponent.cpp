@@ -9,14 +9,14 @@ MainComponent::MainComponent()
     logScreenL.setScrollbarsShown     (false);
     logScreenL.setReadOnly            (true);
     logScreenL.setPopupMenuEnabled    (true);
-    logScreenL.setTextToShowWhenEmpty ("LEFT HAND LOG SCREEN", juce::Colours::white);
+    //logScreenL.setTextToShowWhenEmpty ("LEFT HAND LOG SCREEN", juce::Colours::white);
     addAndMakeVisible                 (&logScreenL);
 
     logScreenR.setMultiLine           (true);
     logScreenR.setScrollbarsShown     (false);
     logScreenR.setReadOnly            (true);
     logScreenR.setPopupMenuEnabled    (true);
-    logScreenR.setTextToShowWhenEmpty ("RIGHT HAND LOG SCREEN", juce::Colours::white);
+    //logScreenR.setTextToShowWhenEmpty ("RIGHT HAND LOG SCREEN", juce::Colours::white);
     addAndMakeVisible                 (&logScreenR);
 
     if (! connect (7500))
