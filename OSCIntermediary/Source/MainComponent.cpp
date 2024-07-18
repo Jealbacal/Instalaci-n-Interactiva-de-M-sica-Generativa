@@ -104,11 +104,11 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
             return;
         }*/
     
-    /*logMessage (" - Received OSC message with address "
+    logMessage (" - Received OSC message with address "
                 + message.getAddressPattern().toString()
                 + " with "
                 + juce::String (message.size())
-                + " argument(s):");*/
+                + " argument(s):", 0);
 
     if (message.getAddressPattern() == "/mediapipe/handsL")
     {
@@ -131,8 +131,8 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
         rightHand.y = message[1].getInt32();
     }
     
-    logScreenL.clear();
-    logScreenR.clear();
+    /*logScreenL.clear();
+    logScreenR.clear();*/
 
     logMessage (" -- Gesture -> "         + juce::String (leftHand.gesture), 0);
     logMessage (" -- Hand -> 0", 0);
