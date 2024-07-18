@@ -5,11 +5,19 @@ MainComponent::MainComponent()
 {
     setSize (700, 400);
 
-    logScreen.setMultiLine        (true);
-    logScreen.setScrollbarsShown  (false);
-    logScreen.setReadOnly         (true);
-    logScreen.setPopupMenuEnabled (true);
-    addAndMakeVisible             (&logScreen);
+    logScreenL.setMultiLine           (true);
+    logScreenL.setScrollbarsShown     (false);
+    logScreenL.setReadOnly            (true);
+    logScreenL.setPopupMenuEnabled    (true);
+    logScreenL.setTextToShowWhenEmpty ("LEFT HAND LOG SCREEN", juce::Colours::white);
+    addAndMakeVisible                 (&logScreenL);
+
+    logScreenR.setMultiLine           (true);
+    logScreenR.setScrollbarsShown     (false);
+    logScreenR.setReadOnly            (true);
+    logScreenR.setPopupMenuEnabled    (true);
+    logScreenR.setTextToShowWhenEmpty ("RIGHT HAND LOG SCREEN", juce::Colours::white);
+    addAndMakeVisible                 (&logScreenR);
 
     if (! connect (7500))
         showConnectionErrorMessage ("Error: could not connect receiver to UDP port 7500");
@@ -66,7 +74,11 @@ void MainComponent::resized()
     auto area          = getLocalBounds();
     auto logScreenArea = area.removeFromBottom (logScreenHeight);
 
-    logScreen.setBounds (logScreenArea.reduced (5));
+    logScreenL.setBounds (logScreenArea.removeFromLeft (
+                          logScreenArea.getWidth() / 2)
+                          .reduced(5));
+
+    logScreenR.setBounds (logScreenArea.reduced (5));
 
     testCombo.setBounds (area.removeFromLeft (area.getWidth() / 2).reduced (10));
 
@@ -94,33 +106,51 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
                 + " with "
                 + juce::String (message.size())
                 + " argument(s):");*/
-
-    logScreen.clear();
-
-    logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()));
-    logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()));
-    logMessage (" -- X position -> "      + juce::String (message[2].getInt32()));
-    logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()));
-    logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()));
     
     switch (message[1].getInt32())
     {
     case 0: // Update left hand
-        updateHands (leftHand,
+        leftHand.gesture = message[0].getInt32();
+        leftHand.x       = message[2].getInt32();
+        leftHand.y       = message[3].getInt32();
+        leftHand.numeric = message[4].getInt32();
+
+        logScreenL.clear();
+
+        logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 0);
+        logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 0);
+        logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 0);
+        logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 0);
+        logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 0);
+
+        /*updateHands (leftHand_old,
                      message[0].getInt32(),
                      message[1].getInt32(),
                      message[2].getInt32(),
                      message[3].getInt32(),
-                     message[4].getInt32());
+                     message[4].getInt32());*/
         break;
 
     case 1: // Update right hand
-        updateHands (rightHand,
+        rightHand.gesture = message[0].getInt32();
+        rightHand.x       = message[2].getInt32();
+        rightHand.y       = message[3].getInt32();
+        rightHand.numeric = message[4].getInt32();
+        
+        logScreenL.clear();
+
+        logMessage (" -- Gesture -> "         + juce::String (message[0].getInt32()), 1);
+        logMessage (" -- Hand -> "            + juce::String (message[1].getInt32()), 1);
+        logMessage (" -- X position -> "      + juce::String (message[2].getInt32()), 1);
+        logMessage (" -- Y position -> "      + juce::String (message[3].getInt32()), 1);
+        logMessage (" -- Numeric gesture -> " + juce::String (message[4].getInt32()), 1);
+        
+        /*updateHands (rightHand_old,
                      message[0].getInt32(),
                      message[1].getInt32(),
                      message[2].getInt32(),
                      message[3].getInt32(),
-                     message[4].getInt32());
+                     message[4].getInt32());*/
         break;
 
     default: // Error
@@ -152,10 +182,20 @@ void MainComponent::showArgumentErrorMessage (const juce::String& message)
                                             "OK");
 }
 
-void MainComponent::logMessage (const juce::String& m)
+void MainComponent::logMessage (const juce::String& m, int hand)
 {
-    logScreen.moveCaretToEnd();
-    logScreen.insertTextAtCaret (m + juce::newLine);
+    switch (hand)
+    {
+    case 0:
+        logScreenL.moveCaretToEnd();
+        logScreenL.insertTextAtCaret (m + juce::newLine);
+        break;
+    case 1:
+        logScreenR.moveCaretToEnd();
+        logScreenR.insertTextAtCaret (m + juce::newLine);
+        break;
+    default: break;
+    }
 }
 
 //==============================================================================
@@ -184,7 +224,10 @@ void MainComponent::handleInvalidPortNumberEntered()
 }
 
 //=============================================================================
-void MainComponent::updateHands (handParams& params, int gest, int hand, int x, int y, int num)
+/**
+ DEPRECATED
+*/
+void MainComponent::updateHands (handParams_old& params, int gest, int hand, int x, int y, int num)
 {
             // Repetition check for gesture
             if (gest == params.newGesture) params.timesSeenGest++;
@@ -209,7 +252,7 @@ void MainComponent::updateHands (handParams& params, int gest, int hand, int x, 
 
 bool MainComponent::resend (juce::String& e)
 {
-    if (! senderEC2.send ("/juce/preset", (float) leftHand.currentNumeric))
+    if (! senderEC2.send ("/juce/preset", (float) leftHand.numeric))
     {
         e = "Error: could not send preset to Emission Control 2";
         return false;

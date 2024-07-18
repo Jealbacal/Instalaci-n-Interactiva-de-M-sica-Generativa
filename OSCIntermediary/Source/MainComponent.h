@@ -26,6 +26,14 @@ private:
 
     struct handParams
     {
+        int gesture = 0,
+            numeric = 0,
+            x = 0,
+            y = 0;
+    } leftHand, rightHand;
+
+    struct handParams_old
+    {
         int newGesture     = 0,
             timesSeenGest  = 0,
             currentGesture = 0,
@@ -34,9 +42,10 @@ private:
             currentNumeric = 0,
             x              = 0,
             y              = 0;
-    } leftHand, rightHand;
+    } leftHand_old, rightHand_old;
 
-    juce::TextEditor logScreen;
+    juce::TextEditor logScreenL,
+                     logScreenR;
 
     juce::Slider testSlider;
 
@@ -47,7 +56,7 @@ private:
     void oscMessageReceived         (const juce::OSCMessage&) override;
     void showConnectionErrorMessage (const juce::String&);
     void showArgumentErrorMessage   (const juce::String&);
-    void logMessage                 (const juce::String&);
+    void logMessage                 (const juce::String&, int);
 
     //==============================================================================
     void handleConnectError (int);
@@ -55,7 +64,7 @@ private:
     void handleInvalidPortNumberEntered();
 
     //==============================================================================
-    void updateHands (handParams&, int, int, int, int, int);
+    void updateHands (handParams_old&, int, int, int, int, int);
     bool resend (juce::String&);
 
     juce::String OSCArgToString (const juce::OSCArgument&);
