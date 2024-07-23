@@ -56,6 +56,9 @@ MainComponent::MainComponent()
 
     if (! senderEC2.connect ("127.0.0.1", 7501))
         showConnectionErrorMessage ("Error: could not connect Emission Control 2 sender to UDP port 7501");
+
+    if (! senderOR.connect ("127.0.0.1", 7502))
+        showConnectionErrorMessage ("Error: could not connect Oril River sender to UDP port 7502");
 }
 
 MainComponent::~MainComponent()
@@ -306,6 +309,18 @@ bool MainComponent::resend (juce::String& e)
     if (! senderEC2.send ("/juce/filterq", (float) rightHand.y))
     {
         e = "Error: could not send filter Q to Emission Control 2";
+        return false;
+    }
+
+    if (!senderEC2.send("/juce/filterq", (float)rightHand.y))
+    {
+        e = "Error: could not send filter Q to Emission Control 2";
+        return false;
+    }
+
+    if (!senderOR.send ("/juce/dry", (float) leftHand.y))
+    {
+        e = "Error: could not send dry to Oril River";
         return false;
     }
 

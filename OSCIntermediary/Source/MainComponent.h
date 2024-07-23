@@ -52,6 +52,7 @@ private:
     juce::ComboBox testCombo;
 
     juce::OSCSender senderEC2; // The sender for EmissionControl2
+    juce::OSCSender senderOR; // The sender for OrilRiver
 
     void oscMessageReceived         (const juce::OSCMessage&) override;
     void showConnectionErrorMessage (const juce::String&);
