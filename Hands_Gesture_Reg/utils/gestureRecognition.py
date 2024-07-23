@@ -8,16 +8,19 @@ from collections import deque
 
 from pythonosc import udp_client
 from pythonosc.osc_message_builder import OscMessageBuilder
-import threading
 import time
-
+from huggingsound import SpeechRecognitionModel
+import speech_recognition as sr
+import io
+import tempfile
+import os
 
 
 
 class Sender ():
 
     def __init__(self,ip,port):
-        self.client = udp_client.SimpleUDPClient(ip, port)
+        self.client = udp_client.SimpleUDPClient(ip, port)  
         self.OSC_ADDRESS1 = "/mediapipe/handsR"
         self.OSC_ADDRESS2 = "/mediapipe/posR"
         self.OSC_ADDRESS3 = "/mediapipe/handsL"
@@ -243,8 +246,33 @@ class Inference ():
 
 if __name__ == '__main__':
         
-    sender = Sender ("127.0.0.1", 7500)
-    inference = Inference(sender)
+    # sender = Sender ("127.0.0.1", 7500)
+    # inference = Inference(sender)
 
+
+    model = SpeechRecognitionModel("jonatasgrosman/wav2vec2-large-xlsr-53-spanish")
+
+    r = sr.Recognizer()
     
+    with sr.Microphone(sample_rate=16000) as source:
+        print("Puedes hablar")
+        while True:
+            audio = r.listen(source)
+            data = io.BytesIO(audio.get_wav_data())
+
+            # Save the audio data to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
+                temp_audio_file.write(data.getbuffer())
+                temp_audio_file_path = temp_audio_file.name
+
+            # Perform the transcription
+                transcriptions = model.transcribe([temp_audio_file_path])
+
+                # Print the transcriptions
+                print(transcriptions)
+
+        # Clean up the temporary file
+                #os.remove(temp_audio_file_path)    
+
+
 
