@@ -128,6 +128,8 @@ class Inference ():
     def __init__(self,sender):
         self.recognizer = None
         self.sender = sender
+        self.exception_count = 0
+        self.max_consecutive_exceptions = 25 
         self.setup_inference()
   
 
@@ -159,7 +161,9 @@ class Inference ():
         with self.GestureRecognizer.create_from_options(options) as recognizer:
     # The recognizer is initialized. Use it here.
             while self.video.isOpened():
-                # Capture frame-by-frame
+                    
+              
+            # Capture frame-by-frame
                 ret, frame = self.video.read()
                 frame = cv2.resize(frame, (800, 600))
                 # frame=cv2.flip(frame,1)
@@ -204,6 +208,13 @@ class Inference ():
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
 
+                if self.exception_count >= self.max_consecutive_exceptions:
+                    print("Max consecutive exceptions reached, breaking the loop.")
+                    break
+
+                
+
+
         self.video.release()
         cv2.destroyAllWindows()
         
@@ -239,9 +250,11 @@ class Inference ():
                     self.sender.update_buffer_left(gest,numerics)
                     self.sender.send_coords_left(absolute[9])
 
+                self.exception_count = 0
 
         except Exception as e:
-            print(e)
+            print(f"Exception occurred: {e}, consecutive count: {self.exception_count}")
+            self.exception_count +=1
 
 
 if __name__ == '__main__':
