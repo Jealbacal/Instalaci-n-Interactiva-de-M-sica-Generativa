@@ -246,10 +246,6 @@ class Inference ():
 
 if __name__ == '__main__':
         
-    # sender = Sender ("127.0.0.1", 7500)
-    # inference = Inference(sender)
-
-
     model = SpeechRecognitionModel("jonatasgrosman/wav2vec2-large-xlsr-53-spanish")
 
     r = sr.Recognizer()
@@ -268,11 +264,15 @@ if __name__ == '__main__':
             # Perform the transcription
                 transcriptions = model.transcribe([temp_audio_file_path])
 
-                # Print the transcriptions
                 print(transcriptions)
-
+                # Print the transcriptions
+                if transcriptions[0].get('transcription') == 'empieza':
+                    sender = Sender ("127.0.0.1", 7500)
+                    inference = Inference(sender)
+                elif transcriptions[0].get('transcription') == 'termina':
+                    break
         # Clean up the temporary file
-                #os.remove(temp_audio_file_path)    
+            os.remove(temp_audio_file_path)    
 
 
 
