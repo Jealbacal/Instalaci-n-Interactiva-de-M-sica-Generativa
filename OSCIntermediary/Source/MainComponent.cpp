@@ -50,7 +50,7 @@ MainComponent::MainComponent()
     testSlider.onValueChange = [this]
         {
             // create and send an OSC message with an address and a float value:
-            if (! senderEC2.send ("/juce/grainrate", (float) testSlider.getValue()))
+            if (! senderOR.send ("/juce/dry", (float) testSlider.getValue()))
                 showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
         };
 
@@ -312,17 +312,11 @@ bool MainComponent::resend (juce::String& e)
         return false;
     }
 
-    if (!senderEC2.send("/juce/filterq", (float)rightHand.y))
-    {
-        e = "Error: could not send filter Q to Emission Control 2";
-        return false;
-    }
-
-    if (!senderOR.send ("/juce/dry", (float) leftHand.y))
+    /*if (!senderOR.send ("/juce/dry", (float) leftHand.y))
     {
         e = "Error: could not send dry to Oril River";
         return false;
-    }
+    }*/
 
     return true;
 }
