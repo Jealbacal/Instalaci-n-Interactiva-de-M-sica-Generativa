@@ -44,6 +44,14 @@ private:
             y              = 0;
     } leftHand_old, rightHand_old;
 
+    enum class fromAddress
+    {
+        handsL = 0,
+        handsR,
+        posL,
+        posR
+    };
+
     juce::TextEditor logScreenL,
                      logScreenR;
 
@@ -66,7 +74,7 @@ private:
 
     //==============================================================================
     void updateHands (handParams_old&, int, int, int, int, int);
-    bool resend (juce::String&);
+    bool resend (fromAddress, juce::String&);
 
     juce::String OSCArgToString (const juce::OSCArgument&);
 

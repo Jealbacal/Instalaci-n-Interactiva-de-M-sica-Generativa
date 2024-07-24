@@ -27,7 +27,7 @@ MainComponent::MainComponent()
     addListener (this, "/mediapipe/posL");
     addListener (this, "/mediapipe/posR");
 
-    testSlider.setRange        (0.1, 100.0);
+    testSlider.setRange        (0.1f, 100.0f);
     testSlider.setSliderStyle  (juce::Slider::LinearHorizontal);
     testSlider.setTextBoxStyle (juce::Slider::TextBoxAbove, true, 150, 25);
     addAndMakeVisible (&testSlider);
@@ -50,7 +50,7 @@ MainComponent::MainComponent()
     testSlider.onValueChange = [this]
         {
             // create and send an OSC message with an address and a float value:
-            if (! senderOR.send ("/juce/dry", (float) testSlider.getValue()))
+            if (! senderOR.send ("/juce/dry", juce::jmap ((float) testSlider.getValue(), 0.1f, 100.0f, 0.0f, 1.0f)))
                 showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
         };
 
@@ -113,25 +113,35 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
                 + juce::String (message.size())
                 + " argument(s):", 0);*/
 
+    juce::String error = "";
+
     if (message.getAddressPattern() == "/mediapipe/handsL")
     {
         leftHand.gesture = message[0].getInt32();
         leftHand.numeric = message[1].getInt32();
+
+        if (! resend (fromAddress::handsL, error)) showConnectionErrorMessage (error);
     }
     else if (message.getAddressPattern() == "/mediapipe/handsR")
     {
         rightHand.gesture = message[0].getInt32();
         rightHand.numeric = message[1].getInt32();
+
+        if (! resend (fromAddress::handsR, error)) showConnectionErrorMessage (error);
     }
     else if (message.getAddressPattern() == "/mediapipe/posL")
     {
         leftHand.x = message[0].getInt32();
         leftHand.y = message[1].getInt32();
+
+        if (! resend (fromAddress::posL, error)) showConnectionErrorMessage (error);
     }
     else if (message.getAddressPattern() == "/mediapipe/posR")
     {
         rightHand.x = message[0].getInt32();
         rightHand.y = message[1].getInt32();
+
+        if (! resend (fromAddress::posR, error)) showConnectionErrorMessage (error);
     }
     
     logScreenL.clear();
@@ -200,9 +210,6 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
     //    return;
     //}
 
-    juce::String error = "";
-    if (! resend (error)) showConnectionErrorMessage (error);
-
     /*for (juce::OSCArgument arg : message)
         logMessage (OSCArgToString (arg));*/
 
@@ -267,8 +274,8 @@ void MainComponent::handleInvalidPortNumberEntered()
 
 //=============================================================================
 /**
- DEPRECATED
-*/
+     * DEPRECATED
+     */
 void MainComponent::updateHands (handParams_old& params, int gest, int hand, int x, int y, int num)
 {
             // Repetition check for gesture
@@ -292,31 +299,80 @@ void MainComponent::updateHands (handParams_old& params, int gest, int hand, int
             params.y = y;
 }
 
-bool MainComponent::resend (juce::String& e)
+/**
+    * Resends OSC messages to their respective programs (Emission Control or Oril River)
+    * each time an OSC message is received
+    * 
+    * @param address : A fromAddress enum to define the message to be resent
+    * @param e : The juce::String of an error, if it happens
+    * @return True if every message was sent succesfully, false otherwise
+    */
+bool MainComponent::resend (fromAddress address, juce::String& e)
 {
-    if (! senderEC2.send ("/juce/preset", (float) leftHand.numeric))
+    switch (address)
     {
-        e = "Error: could not send preset to Emission Control 2";
-        return false;
-    }
-    
-    if (! senderEC2.send ("/juce/filterfreq", (float) rightHand.x))
-    {
-        e = "Error: could not send filter frequency to Emission Control 2";
-        return false;
-    }
+    case MainComponent::fromAddress::handsL:
+        if (! senderEC2.send ("/juce/???", (float) leftHand.gesture))
+        {
+            e = "Error: could not send ??? to ???";
+            return false;
+        }
 
-    if (! senderEC2.send ("/juce/filterq", (float) rightHand.y))
-    {
-        e = "Error: could not send filter Q to Emission Control 2";
-        return false;
-    }
+        if (! senderEC2.send ("/juce/preset", (float) leftHand.numeric))
+        {
+            e = "Error: could not send preset to Emission Control 2";
+            return false;
+        }
 
-    /*if (!senderOR.send ("/juce/dry", (float) leftHand.y))
-    {
-        e = "Error: could not send dry to Oril River";
-        return false;
-    }*/
+        break;
+
+    case MainComponent::fromAddress::handsR:
+        if (! senderEC2.send ("/juce/???", (float) rightHand.gesture))
+        {
+            e = "Error: could not send ??? to ???";
+            return false;
+        }
+
+        if (! senderEC2.send ("/juce/???", (float) rightHand.numeric))
+        {
+            e = "Error: could not send ??? to ???";
+            return false;
+        }
+
+        break;
+
+    case MainComponent::fromAddress::posL:
+        if (! senderOR.send ("/juce/decayTime", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+        {
+            e = "Error: could not send decay time to Oril River";
+            return false;
+        }
+
+        if (! senderOR.send ("/juce/dry", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+        {
+            e = "Error: could not send dry to Oril River";
+            return false;
+        }
+
+        break;
+
+    case MainComponent::fromAddress::posR:
+        if (! senderEC2.send ("/juce/filterFreq", (float) rightHand.x))
+        {
+            e = "Error: could not send filter frequency to Emission Control 2";
+            return false;
+        }
+
+        if (! senderEC2.send ("/juce/filterQ", (float) rightHand.y))
+        {
+            e = "Error: could not send filter Q to Emission Control 2";
+            return false;
+        }
+
+        break;
+
+    default: break;
+    }
 
     return true;
 }
