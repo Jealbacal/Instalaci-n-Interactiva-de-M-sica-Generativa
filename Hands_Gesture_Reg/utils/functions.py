@@ -41,17 +41,17 @@ def normalize_landmarks(landmark_abs):
 
 
 def traducir(label):
-    if label == "palm":
+    if label == "none":
         return 0
-    elif label == "fist":
+    elif label == "palm":
         return 1
-    elif label == "l":
+    elif label == "fist":
         return 2
-    elif label == "thumb up":
+    elif label == "l":
         return 3
-    elif label == "thumb down":
+    elif label == "thumb up":
         return 4
-    elif label == "none":
+    elif label == "thumb down":
         return 5
     
 
@@ -61,24 +61,41 @@ def numerics_gest(landmarks):
         (abs(landmarks[0][0] - landmarks[20][0]) < 0.2)
         and ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2))
         and ((abs(landmarks[0][0] - landmarks[12][0]) < 0.2))
-        and (abs(landmarks[7][0] - landmarks[4][0]) < 0.2)
+        and (abs(landmarks[11][0] - landmarks[4][0]) < 0.2
+        and (abs(landmarks[8][0] - landmarks[0][0]) > 0.9 ))
     ):
         return 1
 
     elif (
-        (abs(landmarks[1][0] - landmarks[20][0]) < 0.2)
+        (abs(landmarks[0][0] - landmarks[20][0]) < 0.2)
         and ((abs(landmarks[1][0] - landmarks[16][0]) < 0.2))
-        and ((abs(landmarks[19][0] - landmarks[4][0]) < 0.2))
+        and ((abs(landmarks[15][0] - landmarks[4][0]) < 0.2)
+        and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.9 )
+        and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.9 ))
     ):
         return 2
 
-    elif (abs(landmarks[0][0] - landmarks[20][0]) < 0.2) and (
-        (abs(landmarks[0][0] - landmarks[16][0]) < 0.2)
+    elif ((abs(landmarks[4][0] - landmarks[20][0]) < 0.2)
+          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.9 )
+        
     ):
         return 3
 
-    elif abs(landmarks[13][0] - landmarks[4][0]) < 0.3:
+    elif ((abs(landmarks[17][0] - landmarks[4][0]) < 0.3)
+          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[20][0] - landmarks[0][0]) >= 0.9 )):
         return 4
 
-    else:
+    elif ((abs(landmarks[4][0] - landmarks[0][0]) >= 0.9)
+          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.9 )
+          and (abs(landmarks[20][0] - landmarks[0][0]) >= 0.9 )):
         return 5   
+    else:
+        return 0
+        

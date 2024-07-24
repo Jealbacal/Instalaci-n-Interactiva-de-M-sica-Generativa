@@ -129,7 +129,7 @@ class Inference ():
         self.recognizer = None
         self.sender = sender
         self.exception_count = 0
-        self.max_consecutive_exceptions = 25 
+        self.max_consecutive_exceptions = 1250
         self.setup_inference()
   
 
@@ -141,7 +141,7 @@ class Inference ():
 
         options = GestureRecognizerOptions(
             base_options=BaseOptions(
-                model_asset_path="utils/gesture_recognizer.task"  # Corregido el separador de ruta
+                model_asset_path="gesture_recognizer.task"  # Corregido el separador de ruta
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
             result_callback=self.print_result,  # Corregido: pasar referencia a la función
@@ -253,7 +253,7 @@ class Inference ():
                 self.exception_count = 0
 
         except Exception as e:
-            print(f"Exception occurred: {e}, consecutive count: {self.exception_count}")
+            #print(f"Exception occurred: {e}, consecutive count: {self.exception_count}")
             self.exception_count +=1
 
 
