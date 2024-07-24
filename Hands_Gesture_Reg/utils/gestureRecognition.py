@@ -8,16 +8,19 @@ from collections import deque
 
 from pythonosc import udp_client
 from pythonosc.osc_message_builder import OscMessageBuilder
-import threading
 import time
-
+from huggingsound import SpeechRecognitionModel
+import speech_recognition as sr
+import io
+import tempfile
+import os
 
 
 
 class Sender ():
 
     def __init__(self,ip,port):
-        self.client = udp_client.SimpleUDPClient(ip, port)
+        self.client = udp_client.SimpleUDPClient(ip, port)  
         self.OSC_ADDRESS1 = "/mediapipe/handsR"
         self.OSC_ADDRESS2 = "/mediapipe/posR"
         self.OSC_ADDRESS3 = "/mediapipe/handsL"
@@ -125,6 +128,8 @@ class Inference ():
     def __init__(self,sender):
         self.recognizer = None
         self.sender = sender
+        self.exception_count = 0
+        self.max_consecutive_exceptions = 1250
         self.setup_inference()
   
 
@@ -136,7 +141,7 @@ class Inference ():
 
         options = GestureRecognizerOptions(
             base_options=BaseOptions(
-                model_asset_path="utils/gesture_recognizer.task"  # Corregido el separador de ruta
+                model_asset_path="gesture_recognizer.task"  # Corregido el separador de ruta
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
             result_callback=self.print_result,  # Corregido: pasar referencia a la función
@@ -156,7 +161,9 @@ class Inference ():
         with self.GestureRecognizer.create_from_options(options) as recognizer:
     # The recognizer is initialized. Use it here.
             while self.video.isOpened():
-                # Capture frame-by-frame
+                    
+              
+            # Capture frame-by-frame
                 ret, frame = self.video.read()
                 frame = cv2.resize(frame, (800, 600))
                 # frame=cv2.flip(frame,1)
@@ -201,6 +208,13 @@ class Inference ():
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
 
+                if self.exception_count >= self.max_consecutive_exceptions:
+                    print("Max consecutive exceptions reached, breaking the loop.")
+                    break
+
+                
+
+
         self.video.release()
         cv2.destroyAllWindows()
         
@@ -236,15 +250,42 @@ class Inference ():
                     self.sender.update_buffer_left(gest,numerics)
                     self.sender.send_coords_left(absolute[9])
 
+                self.exception_count = 0
 
         except Exception as e:
-            print(e)
+            #print(f"Exception occurred: {e}, consecutive count: {self.exception_count}")
+            self.exception_count +=1
 
 
 if __name__ == '__main__':
         
-    sender = Sender ("127.0.0.1", 7500)
-    inference = Inference(sender)
+    model = SpeechRecognitionModel("jonatasgrosman/wav2vec2-large-xlsr-53-spanish")
 
+    r = sr.Recognizer()
     
+    with sr.Microphone(sample_rate=16000) as source:
+        print("Puedes hablar")
+        while True:
+            audio = r.listen(source)
+            data = io.BytesIO(audio.get_wav_data())
+
+            # Save the audio data to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
+                temp_audio_file.write(data.getbuffer())
+                temp_audio_file_path = temp_audio_file.name
+
+            # Perform the transcription
+                transcriptions = model.transcribe([temp_audio_file_path])
+
+                print(transcriptions)
+                # Print the transcriptions
+                if transcriptions[0].get('transcription') == 'empieza':
+                    sender = Sender ("127.0.0.1", 7500)
+                    inference = Inference(sender)
+                elif transcriptions[0].get('transcription') == 'termina':
+                    break
+        # Clean up the temporary file
+            os.remove(temp_audio_file_path)    
+
+
 
