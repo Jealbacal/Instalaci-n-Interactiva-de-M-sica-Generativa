@@ -141,11 +141,12 @@ class Inference ():
 
         options = GestureRecognizerOptions(
             base_options=BaseOptions(
-                model_asset_path="gesture_recognizer.task"  # Corregido el separador de ruta
+                model_asset_path="utils\gesture_recognizer.task" 
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
-            result_callback=self.print_result,  # Corregido: pasar referencia a la función
+            result_callback=self.print_result,  
             num_hands=2,
+            min_hand_detection_confidence=0.2,
         )
 
         self.video = cv2.VideoCapture(0)

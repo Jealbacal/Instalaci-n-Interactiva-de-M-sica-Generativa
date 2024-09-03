@@ -13,9 +13,9 @@ dispatcher.map("/mediapipe/handsR", handler)  # Mapea todos los mensajes OSC a e
 # dispatcher.map("/mediapipe/hands/hand", handler)  # Mapea todos los mensajes OSC a esta función
 # dispatcher.map("/mediapipe/hands/pos", handler)  # Mapea todos los mensajes OSC a esta función
 # dispatcher.map("/mediapipe/hands/num_gest", handler)  # Mapea todos los mensajes OSC a esta función
-dispatcher.map("/mediapipe/posR", handler) 
+#dispatcher.map("/mediapipe/posR", handler) 
 dispatcher.map("/mediapipe/handsL", handler)
-dispatcher.map("/mediapipe/posL", handler)  
+#dispatcher.map("/mediapipe/posL", handler)  
 # Configura el servidor OSC para escuchar en el puerto 8080
 server = BlockingOSCUDPServer(("127.0.0.1", 7500), dispatcher)
 

@@ -61,9 +61,10 @@ def numerics_gest(landmarks):
         (abs(landmarks[0][0] - landmarks[20][0]) < 0.2)
         and ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2))
         and ((abs(landmarks[0][0] - landmarks[12][0]) < 0.2))
-        and (abs(landmarks[11][0] - landmarks[4][0]) < 0.2
-        and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.6 ))
+        and ((abs(landmarks[11][0] - landmarks[4][0]) < 0.2))
+        and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.3 )
     ):
+        
         return 1
 
     elif (
@@ -97,5 +98,16 @@ def numerics_gest(landmarks):
           and (abs(landmarks[20][0] - landmarks[0][0]) >= 0.6 )):
         return 5   
     else:
+        print("meñique:")
+        print(abs(landmarks[0][0] - landmarks[20][0]) )
+        print("anular:")
+        print(abs(landmarks[0][0] - landmarks[16][0]))
+        print("medio")
+        print(abs(landmarks[0][0] - landmarks[12][0]) )
+        print("pulgar")
+        print(abs(landmarks[11][0] - landmarks[4][0]) )
+        print("indice")
+        print(abs(landmarks[8][0] - landmarks[0][0]) )
         return 0
+        
         
