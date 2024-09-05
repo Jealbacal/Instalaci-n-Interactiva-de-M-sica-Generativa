@@ -143,6 +143,7 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
 
         if (! resend (fromAddress::posR, error)) showConnectionErrorMessage (error);
     }
+    else {} // Address unknown
     
     logScreenL.clear();
     logScreenR.clear();
@@ -311,67 +312,212 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
 {
     switch (address)
     {
-    case MainComponent::fromAddress::handsL:
-        if (! senderEC2.send ("/juce/???", (float) leftHand.gesture))
-        {
-            e = "Error: could not send ??? to ???";
-            return false;
-        }
+    case MainComponent::fromAddress::handsL: // Gesto de la mano izquierda
+        MainComponent::currentGesture.first = (MainComponent::handGesture) leftHand.gesture;
 
-        if (! senderEC2.send ("/juce/preset", (float) leftHand.numeric))
+        switch ((MainComponent::handGesture) leftHand.gesture)
         {
-            e = "Error: could not send preset to Emission Control 2";
-            return false;
+        case MainComponent::handGesture::none: // Sin gesture, tomamos numerics
+            if (leftHand.numeric > 0 &&
+                leftHand.numeric <= 5)
+            {
+                if (! senderEC2.send ("/juce/EC2/soundFile", (float) leftHand.numeric))
+                {
+                    e = "Error: could not send soundFile to Emission Control 2";
+                    return false;
+                }
+                else {} // Numeric unknown or none
+            }
+
+            break;
+
+        case MainComponent::handGesture::palm: // Not here, these are used on posL address case
+        case MainComponent::handGesture::fist:
+        case MainComponent::handGesture::L:
+            break;
+
+        case MainComponent::handGesture::thumbUp:
+            if (! senderOR.send ("/juce/OR/bypassDry", 0.0f))
+            {
+                e = "Error: could not send bypassDry off to OrilRiver";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::thumbDown:
+            if (! senderOR.send ("/juce/OR/bypassDry", 1.0f))
+            {
+                e = "Error: could not send bypassDry on to OrilRiver";
+                return false;
+            }
+
+            break;
+
+        default: // Gesture unknown
+            MainComponent::currentGesture.first = MainComponent::handGesture::none;
+            break;
         }
 
         break;
 
-    case MainComponent::fromAddress::handsR:
-        if (! senderEC2.send ("/juce/???", (float) rightHand.gesture))
-        {
-            e = "Error: could not send ??? to ???";
-            return false;
-        }
+    case MainComponent::fromAddress::handsR: // Gesto de la mano derecha
+        MainComponent::currentGesture.second = (MainComponent::handGesture) rightHand.gesture;
 
-        if (! senderEC2.send ("/juce/???", (float) rightHand.numeric))
+        switch ((MainComponent::handGesture) rightHand.gesture)
         {
-            e = "Error: could not send ??? to ???";
-            return false;
-        }
+        case MainComponent::handGesture::none: // Sin gesture, tomamos numerics
+            if (rightHand.numeric > 0 && 
+                rightHand.numeric <= 5)
+            {
+                if (! senderEC2.send ("/juce/EC2/preset", (float) leftHand.numeric))
+                {
+                    e = "Error: could not send preset to Emission Control 2";
+                    return false;
+                }
+                else {} // Numeric unknown or none
+            }
 
+            break;
+
+        case MainComponent::handGesture::palm: // Not here, these are used on posR address case
+        case MainComponent::handGesture::fist:
+        case MainComponent::handGesture::L:
+            break;
+
+        case MainComponent::handGesture::thumbUp:
+            if (! senderOR.send ("/juce/OR/bypassWet", 0.0f))
+            {
+                e = "Error: could not send bypassWet off to OrilRiver";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::thumbDown:
+            if (! senderOR.send ("/juce/OR/bypassWet", 1.0f))
+            {
+                e = "Error: could not send bypassWet on to OrilRiver";
+                return false;
+            }
+
+            break;
+
+        default: // Gesture unknown
+            MainComponent::currentGesture.second = MainComponent::handGesture::none;
+            break;
+        }
         break;
 
     case MainComponent::fromAddress::posL:
-        if (! senderOR.send ("/juce/decayTime", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+        switch (MainComponent::currentGesture.first)
         {
-            e = "Error: could not send decay time to Oril River";
-            return false;
-        }
+        case MainComponent::handGesture::palm:
+            if (! senderOR.send ("/juce/OR/decayTime", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send decay time to Oril River";
+                return false;
+            }
 
-        if (! senderOR.send ("/juce/dry", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
-        {
-            e = "Error: could not send dry to Oril River";
-            return false;
+            if (!senderOR.send("/juce/OR/width", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send width to Oril River";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::fist:
+            if (! senderOR.send ("/juce/OR/roomSize", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send room size to Oril River";
+                return false;
+            }
+
+            if (!senderOR.send("/juce/OR/diffusion", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send diffusion to Oril River";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::L:
+            if (! senderOR.send ("/juce/OR/lowGain", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send low gain to Oril River";
+                return false;
+            }
+
+            if (!senderOR.send("/juce/OR/highGain", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            {
+                e = "Error: could not send high gain to Oril River";
+                return false;
+            }
+
+            break;
+
+        default: // Other gestures without position interaction
+            break;
         }
 
         break;
 
     case MainComponent::fromAddress::posR:
-        if (! senderEC2.send ("/juce/filterFreq", (float) rightHand.x))
+        switch (MainComponent::currentGesture.second)
         {
-            e = "Error: could not send filter frequency to Emission Control 2";
-            return false;
-        }
+        case MainComponent::handGesture::palm:
+            if (! senderEC2.send ("/juce/EC2/filterFreq", (float) rightHand.x))
+            {
+                e = "Error: could not send filter frequency to Emission Control 2";
+                return false;
+            }
 
-        if (! senderEC2.send ("/juce/filterQ", (float) rightHand.y))
-        {
-            e = "Error: could not send filter Q to Emission Control 2";
-            return false;
+            if (!senderEC2.send("/juce/EC2/filterQ", (float) rightHand.y))
+            {
+                e = "Error: could not send filter Q to Emission Control 2";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::fist:
+            if (! senderEC2.send ("/juce/EC2/grainRate", (float) rightHand.x))
+            {
+                e = "Error: could not send grain rate to Emission Control 2";
+                return false;
+            }
+
+            if (!senderEC2.send("/juce/EC2/grainDuration", (float) rightHand.y))
+            {
+                e = "Error: could not send grain duration to Emission Control 2";
+                return false;
+            }
+
+            break;
+
+        case MainComponent::handGesture::L:
+            if (! senderEC2.send ("/juce/EC2/LFO1Freq", (float) rightHand.x))
+            {
+                e = "Error: could not send LFO1 frequency to Emission Control 2";
+                return false;
+            }
+
+            if (!senderEC2.send("/juce/EC2/envelopeShape", (float) rightHand.y))
+            {
+                e = "Error: could not send envelope shape to Emission Control 2";
+                return false;
+            }
+
+            break;
+
+        default: // Other gestures without position interaction
+            break;
         }
 
         break;
 
-    default: break;
+    default: break; // Address unknown | Impossible
     }
 
     return true;

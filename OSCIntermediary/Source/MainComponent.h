@@ -28,8 +28,8 @@ private:
     {
         int gesture = 0,
             numeric = 0,
-            x = 0,
-            y = 0;
+            x       = 0,
+            y       = 0;
     } leftHand, rightHand;
 
     struct handParams_old
@@ -52,6 +52,19 @@ private:
         posR
     };
 
+    enum class handGesture
+    {
+        none = 0,
+        palm,
+        fist,
+        L,
+        thumbUp,
+        thumbDown
+    };
+
+    std::pair<handGesture, handGesture> currentGesture { handGesture::none,   // Left
+                                                         handGesture::none }; // Right
+
     juce::TextEditor logScreenL,
                      logScreenR;
 
@@ -60,7 +73,7 @@ private:
     juce::ComboBox testCombo;
 
     juce::OSCSender senderEC2; // The sender for EmissionControl2
-    juce::OSCSender senderOR; // The sender for OrilRiver
+    juce::OSCSender senderOR;  // The sender for OrilRiver
 
     void oscMessageReceived         (const juce::OSCMessage&) override;
     void showConnectionErrorMessage (const juce::String&);
