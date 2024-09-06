@@ -1,5 +1,6 @@
 import itertools
 import copy
+import numpy as np
 
 def absolute_landmarks(width, height, landmarks):
     landmarks_abs = []
@@ -54,60 +55,59 @@ def traducir(label):
     elif label == "thumb down":
         return 5
     
+def calcular_distancia(p1x, p1y, p2x, p2y):
+    return np.sqrt((p1x - p2x)**2 + (p1y - p2y)**2) #p1 x 
 
 def numerics_gest(landmarks):
-
+    
+    # Gesto 1: Solo el índice levantado
     if (
-        (abs(landmarks[0][0] - landmarks[20][0]) < 0.2)
-        and ((abs(landmarks[0][0] - landmarks[16][0]) < 0.2))
-        and ((abs(landmarks[0][0] - landmarks[12][0]) < 0.2))
-        and ((abs(landmarks[11][0] - landmarks[4][0]) < 0.2))
-        and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.3 )
+        (calcular_distancia(landmarks[0][0], landmarks[0][1], landmarks[20][0], landmarks[20][1]) < 0.3)  # Meñique cerca de la palma
+        and (calcular_distancia(landmarks[0][0],landmarks[0][1], landmarks[16][0] , landmarks[16][1]) < 0.3)  # Anular cerca de la palma
+        and (calcular_distancia(landmarks[0][0],landmarks[0][1], landmarks[12][0], landmarks[12][1]) < 0.3)  # Medio cerca de la palma
+        and (calcular_distancia(landmarks[11][0],landmarks[11][1], landmarks[4][0],landmarks[4][1]) < 0.3)  # Pulgar doblado
+        and (calcular_distancia(landmarks[8][0],landmarks[8][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Índice extendido
     ):
-        
         return 1
 
+    # Gesto 2: Índice y medio levantados
     elif (
-        (abs(landmarks[0][0] - landmarks[20][0]) < 0.2)
-        and ((abs(landmarks[1][0] - landmarks[16][0]) < 0.2))
-        and ((abs(landmarks[15][0] - landmarks[4][0]) < 0.2)
-        and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.6 )
-        and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.6 ))
+        (calcular_distancia(landmarks[0][0],landmarks[0][1], landmarks[20][0],landmarks[20][1]) < 0.3)
+        and (calcular_distancia(landmarks[0][0], landmarks[0][1],landmarks[16][0] , landmarks[16][1]) < 0.3)  # Anular y meñique doblados
+        and (calcular_distancia(landmarks[15][0],landmarks[15][1], landmarks[4][0],landmarks[4][1]) < 0.3)  # Pulgar doblado
+        and (calcular_distancia(landmarks[8][0],landmarks[8][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Índice extendido
+        and (calcular_distancia(landmarks[12][0], landmarks[12][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Medio extendido
     ):
         return 2
 
-    elif ((abs(landmarks[4][0] - landmarks[20][0]) < 0.2)
-          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.6 )
-        
+    # Gesto 3: Índice, medio y anular levantados
+    elif (
+        (calcular_distancia(landmarks[4][0],landmarks[4][1], landmarks[20][0],landmarks[20][1]) < 0.3)  # Pulgar y meñique doblados
+        and (calcular_distancia(landmarks[8][0],landmarks[8][1], landmarks[0][0] ,landmarks[0][1]) >= 0.6)  # Índice extendido
+        and (calcular_distancia(landmarks[12][0], landmarks[12][1], landmarks[0][0], landmarks[0][1]) >= 0.6)  # Medio extendido
+        and (calcular_distancia(landmarks[16][0] , landmarks[16][1] , landmarks[0][0],landmarks[0][1]) >= 0.6)  # Anular extendido
     ):
         return 3
 
-    elif ((abs(landmarks[17][0] - landmarks[4][0]) < 0.3)
-          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[20][0] - landmarks[0][0]) >= 0.6 )):
+    # Gesto 4: Índice, medio, anular y meñique levantados
+    elif (
+        (calcular_distancia(landmarks[17][0],landmarks[17][1], landmarks[4][0],landmarks[4][1]) < 0.3)  # Pulgar doblado
+        and (calcular_distancia(landmarks[8][0],landmarks[8][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Índice extendido
+        and (calcular_distancia(landmarks[12][0], landmarks[12][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Medio extendido
+        and (calcular_distancia(landmarks[16][0] , landmarks[16][1] , landmarks[0][0],landmarks[0][1]) >= 0.6)  # Anular extendido
+        and (calcular_distancia(landmarks[20][0],landmarks[20][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Meñique extendido
+    ):
         return 4
 
-    elif ((abs(landmarks[4][0] - landmarks[0][0]) >= 0.6)
-          and (abs(landmarks[8][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[12][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[16][0] - landmarks[0][0]) >= 0.6 )
-          and (abs(landmarks[20][0] - landmarks[0][0]) >= 0.6 )):
-        return 5   
+    # Gesto 5: Todos los dedos levantados
+    elif (
+        (calcular_distancia(landmarks[4][0],landmarks[4][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Pulgar extendido
+        and (calcular_distancia(landmarks[8][0],landmarks[8][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Índice extendido
+        and (calcular_distancia(landmarks[12][0], landmarks[12][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Medio extendido
+        and (calcular_distancia(landmarks[16][0] , landmarks[16][1] , landmarks[0][0],landmarks[0][1]) >= 0.6)  # Anular extendido
+        and (calcular_distancia(landmarks[20][0],landmarks[20][1], landmarks[0][0],landmarks[0][1]) >= 0.6)  # Meñique extendido
+    ):
+        return 5
     else:
-        print("meñique:")
-        print(abs(landmarks[0][0] - landmarks[20][0]) )
-        print("anular:")
-        print(abs(landmarks[0][0] - landmarks[16][0]))
-        print("medio")
-        print(abs(landmarks[0][0] - landmarks[12][0]) )
-        print("pulgar")
-        print(abs(landmarks[11][0] - landmarks[4][0]) )
-        print("indice")
-        print(abs(landmarks[8][0] - landmarks[0][0]) )
-        return 0
-        
+        return 0    
         
