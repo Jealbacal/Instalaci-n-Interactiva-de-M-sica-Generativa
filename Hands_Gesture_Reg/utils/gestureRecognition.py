@@ -25,13 +25,13 @@ class Sender ():
         self.OSC_ADDRESS2 = "/mediapipe/posR"
         self.OSC_ADDRESS3 = "/mediapipe/handsL"
         self.OSC_ADDRESS4 = "/mediapipe/posL"
-        buffer_size = 10
-        self.gest_buffer_1 = deque(maxlen=buffer_size)
+        self.buffer_size = 3 
+        self.gest_buffer_1 = deque(maxlen=self.buffer_size)
         #self.hand_buffer_1= deque(maxlen=buffer_size)
-        self.numerics_buffer_1 = deque(maxlen=buffer_size)
-        self.gest_buffer_2 = deque(maxlen=buffer_size)
-        #self.hand_buffer_2= deque(maxlen=buffer_size)
-        self.numerics_buffer_2 = deque(maxlen=buffer_size)
+        self.numerics_buffer_1 = deque(maxlen=self.buffer_size)
+        self.gest_buffer_2 = deque(maxlen=self.buffer_size)
+        #self.hand_buffer_2= deque(maxlen=self.buffer_size)
+        self.numerics_buffer_2 = deque(maxlen=self.buffer_size)
 
         
 
@@ -48,6 +48,8 @@ class Sender ():
         msg.add_arg(numerics)
         msg = msg.build()
 
+   
+
         self.client.send(msg)
 
     def send_hands_left(
@@ -61,6 +63,8 @@ class Sender ():
         # msg.add_arg(int(coord[1]))
         msg.add_arg(numerics)
         msg = msg.build()
+
+        
 
         self.client.send(msg)
 
@@ -88,7 +92,7 @@ class Sender ():
         self.numerics_buffer_1.append(numerics)
         #self.coord_buffer.append(coord)
 
-        if len(self.gest_buffer_1) == 10:
+        if len(self.gest_buffer_1) == self.buffer_size:
             #avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
             mode_gest = st.mode(self.gest_buffer_1)
             #mode_hand = st.mode(self.hand_buffer)
@@ -108,7 +112,7 @@ class Sender ():
         self.numerics_buffer_2.append(numerics)
         #self.coord_buffer.append(coord)
 
-        if len(self.gest_buffer_2) == 10:
+        if len(self.gest_buffer_2) == self.buffer_size:
             #avg_coord = np.mean(self.coord_buffer, axis=0).tolist()
             mode_gest = st.mode(self.gest_buffer_2)
             #mode_hand = st.mode(self.hand_buffer)
@@ -129,7 +133,7 @@ class Inference ():
         self.recognizer = None
         self.sender = sender
         self.exception_count = 0
-        self.max_consecutive_exceptions = 1250
+        self.max_consecutive_exceptions = 7500
         self.setup_inference()
   
 
@@ -207,10 +211,14 @@ class Inference ():
 
                 cv2.imshow("MediaPipe Hands", frame)
                 if cv2.waitKey(5) & 0xFF == 27:
+                    clientEmission = udp_client.SimpleUDPClient("127.0.0.1", 7501)
+                    clientEmission.send_message("/mediapipe/amplitude",-60.00)
                     break
 
                 if self.exception_count >= self.max_consecutive_exceptions:
                     print("Max consecutive exceptions reached, breaking the loop.")
+                    clientEmission = udp_client.SimpleUDPClient("127.0.0.1", 7501)  
+                    clientEmission.send_message("/mediapipe/amplitude",-60.00)
                     break
 
                 
@@ -282,6 +290,8 @@ if __name__ == '__main__':
                 # Print the transcriptions
                 if transcriptions[0].get('transcription') == 'empieza':
                     sender = Sender ("127.0.0.1", 7500)
+                    clientEmission = udp_client.SimpleUDPClient("127.0.0.1", 7501)  
+                    clientEmission.send_message("/mediapipe/amplitude",-6.00)
                     inference = Inference(sender)
                 elif transcriptions[0].get('transcription') == 'termina':
                     break
