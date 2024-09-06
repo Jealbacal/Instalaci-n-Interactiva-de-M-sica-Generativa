@@ -149,15 +149,15 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
     logScreenR.clear();
 
     logMessage (" -- Gesture -> "         + juce::String (leftHand.gesture), 0);
-    logMessage (" -- Hand -> 0", 0);
-    logMessage (" -- X position -> "      + juce::String (leftHand.x), 0);
-    logMessage (" -- Y position -> "      + juce::String (leftHand.y), 0);
+    logMessage (" -- Hand -> 0",                                             0);
+    logMessage (" -- X position -> "      + juce::String (leftHand.x),       0);
+    logMessage (" -- Y position -> "      + juce::String (leftHand.y),       0);
     logMessage (" -- Numeric gesture -> " + juce::String (leftHand.numeric), 0);
 
     logMessage (" -- Gesture -> "         + juce::String (rightHand.gesture), 1);
-    logMessage (" -- Hand -> 1", 1);
-    logMessage (" -- X position -> "      + juce::String (rightHand.x), 1);
-    logMessage (" -- Y position -> "      + juce::String (rightHand.y), 1);
+    logMessage (" -- Hand -> 1",                                              1);
+    logMessage (" -- X position -> "      + juce::String (rightHand.x),       1);
+    logMessage (" -- Y position -> "      + juce::String (rightHand.y),       1);
     logMessage (" -- Numeric gesture -> " + juce::String (rightHand.numeric), 1);
 
     //switch (message[1].getInt32())
