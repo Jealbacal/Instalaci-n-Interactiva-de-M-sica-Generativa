@@ -166,3 +166,6 @@ Dockerfile
 Builds/
 JuceLibraryCode/
 *jucer
+*.mkv
+
+Pruebas_y_auxiliares/frameMaker.py
