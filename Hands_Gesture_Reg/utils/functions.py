@@ -1,6 +1,7 @@
 import itertools
 import copy
 import numpy as np
+import cv2
 
 def absolute_landmarks(width, height, landmarks):
     landmarks_abs = []
@@ -110,4 +111,49 @@ def numerics_gest(landmarks):
         return 5
     else:
         return 0    
-        
+
+
+def frame_negro(ventana_abierta:bool):
+
+    if ventana_abierta:
+
+        frame = np.zeros((600, 800, 3), dtype=np.uint8)
+
+        # Definir el texto que quieres mostrar
+        texto = "Para comenzar di 'Empieza'"
+
+        # Definir la fuente, el tamaño del texto y el color
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        color = (255, 255, 255)  # Blanco
+        grosor = 2
+
+        # Obtener el tamaño del texto para centrarlo
+        (tamaño_texto, _) = cv2.getTextSize(texto, font, font_scale, grosor)
+        posicion_texto = ((frame.shape[1] - tamaño_texto[0]) // 2, (frame.shape[0] + tamaño_texto[1]) // 2)
+
+        # Poner el texto en el frame negro
+        cv2.putText(frame, texto, posicion_texto, font, font_scale, color, grosor, lineType=cv2.LINE_AA)
+
+        # Mostrar el frame
+        cv2.imshow("Frame", frame)
+
+        # Esperar a que el usuario presione una tecla para cerrar
+        cv2.waitKey(1)
+
+def frame_imagen():
+    # Cargar la imagen
+    imagen = cv2.imread("utils\Gestos.jpg")
+    imagen = cv2.resize(imagen, (800, 600))
+    # Comprobar que la imagen se ha cargado correctamente
+    if imagen is None:
+        print("Error: No se pudo cargar la imagen.")
+        return
+    
+    # Mantener el frame visible hasta que se cumpla la condición
+        # Mostrar la imagen en una ventana llamada 'Frame'
+    cv2.imshow("Frame", imagen)
+
+    # Refresca la ventana
+    cv2.waitKey(35000)
+

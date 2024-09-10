@@ -58,9 +58,6 @@ class Sender ():
         
         msg = OscMessageBuilder(address=self.OSC_ADDRESS3)
         msg.add_arg(gest)
-        #msg.add_arg(handedness)
-        # msg.add_arg(int(coord[0]))
-        # msg.add_arg(int(coord[1]))
         msg.add_arg(numerics)
         msg = msg.build()
 
@@ -162,15 +159,20 @@ class Inference ():
         self.inference_run(options,self.timestamp,self.prev_frame_time,self.new_frame_time)   
     
     def inference_run (self,options,timestamp,prev_frame_time,new_frame_time):
-
+        
+        
+        frame_imagen()
         with self.GestureRecognizer.create_from_options(options) as recognizer:
     # The recognizer is initialized. Use it here.
+            cv2.destroyAllWindows()
             while self.video.isOpened():
                     
               
             # Capture frame-by-frame
                 ret, frame = self.video.read()
                 frame = cv2.resize(frame, (800, 600))
+                
+
                 # frame=cv2.flip(frame,1)
 
                 if not ret:
@@ -249,15 +251,21 @@ class Inference ():
                 numerics = numerics_gest(normalize_landmarks(absolute))
                 gest = traducir(gestures[i][0].category_name)
                 label =  1 if handedness[i][0].category_name == 'Right' else 0
+                coordenadas = []
+
+                coordX = (absolute[9][0])
+                coordY = (abs(absolute[9][1] - output_image.height))
+                coordenadas.append(coordX)
+                coordenadas.append(coordY)
                 
 
                 if label == 1:
                     self.sender.update_buffer_right(gest,numerics)
-                    self.sender.send_coords_right(absolute[9])
+                    self.sender.send_coords_right(coordenadas)
 
                 else:
                     self.sender.update_buffer_left(gest,numerics)
-                    self.sender.send_coords_left(absolute[9])
+                    self.sender.send_coords_left(coordenadas)
 
                 self.exception_count = 0
 
@@ -274,8 +282,14 @@ if __name__ == '__main__':
     
     with sr.Microphone(sample_rate=16000) as source:
         print("Puedes hablar")
+        ventana_abierta = True
+
+
         while True:
-            audio = r.listen(source)
+
+            ventana_abierta = True
+            frame_negro(ventana_abierta)
+            audio = r.listen(source,phrase_time_limit=0.40)
             data = io.BytesIO(audio.get_wav_data())
 
             # Save the audio data to a temporary file
@@ -286,14 +300,19 @@ if __name__ == '__main__':
             # Perform the transcription
                 transcriptions = model.transcribe([temp_audio_file_path])
 
+                transcription = transcriptions[0].get('transcription', '')
+
                 print(transcriptions)
                 # Print the transcriptions
-                if transcriptions[0].get('transcription') == 'empieza':
+                if transcription == 'empieza':
+                    ventana_abierta = False 
+                    cv2.destroyAllWindows()
+
                     sender = Sender ("127.0.0.1", 7500)
                     clientEmission = udp_client.SimpleUDPClient("127.0.0.1", 7501)  
                     clientEmission.send_message("/mediapipe/amplitude",-6.00)
                     inference = Inference(sender)
-                elif transcriptions[0].get('transcription') == 'termina':
+                elif transcription == 'termina':
                     break
         # Clean up the temporary file
             os.remove(temp_audio_file_path)    
