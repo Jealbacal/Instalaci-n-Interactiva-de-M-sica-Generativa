@@ -157,3 +157,30 @@ def frame_imagen():
     # Refresca la ventana
     cv2.waitKey(30000)
 
+class ColaCircular:
+    def __init__(self, size):
+        self.size = size  
+        self.queue = [None] * size
+        self.front = 0  
+        self.rear = -1  
+        self.count = 0  
+        self.total = 0 
+
+    def insertar(self, valor):
+        
+        if self.count == self.size:
+            valor_viejo = self.queue[self.front]
+            self.total -= valor_viejo  
+            self.front = (self.front + 1) % self.size  
+        else:
+            self.count += 1
+
+        
+        self.rear = (self.rear + 1) % self.size
+        self.queue[self.rear] = valor
+        self.total += valor  
+
+    def calcular_media(self):
+        if self.count == 0:
+            return 0 
+        return self.total / self.count
