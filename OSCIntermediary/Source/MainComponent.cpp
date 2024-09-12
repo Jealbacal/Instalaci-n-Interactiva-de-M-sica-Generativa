@@ -428,15 +428,15 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
             break;
 
         case MainComponent::handGesture::fist:
-            if (! senderOR.send ("/juce/OR/roomSize", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
+            if (! senderOR.send ("/juce/OR/modDepth", juce::jmap ((float) leftHand.x, 0.0f, 800.0f, 0.0f, 1.0f)))
             {
-                e = "Error: could not send room size to Oril River";
+                e = "Error: could not send mod. depth to Oril River";
                 return false;
             }
 
-            if (!senderOR.send("/juce/OR/diffusion", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            if (!senderOR.send("/juce/OR/modSpeed", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 0.9f)))
             {
-                e = "Error: could not send diffusion to Oril River";
+                e = "Error: could not send mod. speed to Oril River";
                 return false;
             }
 
