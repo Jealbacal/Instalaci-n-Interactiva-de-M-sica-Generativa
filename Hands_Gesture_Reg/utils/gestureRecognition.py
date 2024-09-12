@@ -27,13 +27,13 @@ class Sender ():
         self.OSC_ADDRESS4 = "/mediapipe/posL"
         self.buffer_size = 3 
         self.gest_buffer_1 = deque(maxlen=self.buffer_size)
-        #self.hand_buffer_1= deque(maxlen=buffer_size)
         self.numerics_buffer_1 = deque(maxlen=self.buffer_size)
         self.gest_buffer_2 = deque(maxlen=self.buffer_size)
-        #self.hand_buffer_2= deque(maxlen=self.buffer_size)
         self.numerics_buffer_2 = deque(maxlen=self.buffer_size)
-
-        
+        self.cola_X_R= ColaCircular(5)
+        self.cola_Y_R = ColaCircular(5)
+        self.cola_X_L= ColaCircular(5)
+        self.cola_Y_L = ColaCircular(5)
 
     
     def send_hands_right(
@@ -66,17 +66,33 @@ class Sender ():
         self.client.send(msg)
 
     def send_coords_right(self,coord:list):
+        self.cola_X_R.insertar(int(coord[0]))
+        self.cola_Y_R.insertar(int(coord[1]))
         msg = OscMessageBuilder(address=self.OSC_ADDRESS2)
-        msg.add_arg(int(coord[0]))
-        msg.add_arg(int(coord[1]))
+        
+        if self.cola_X_R.count == self.cola_X_R.size:
+            msg.add_arg(int(self.cola_X_R.calcular_media()))
+            msg.add_arg(int(self.cola_Y_R.calcular_media())) 
+        else:
+            msg.add_arg(int(coord[0]))
+            msg.add_arg(int(coord[1]))
+         
         msg = msg.build()
 
         self.client.send(msg)
 
     def send_coords_left(self,coord:list):
+        self.cola_X_L.insertar(int(coord[0]))
+        self.cola_Y_L.insertar(int(coord[1]))
         msg = OscMessageBuilder(address=self.OSC_ADDRESS4)
-        msg.add_arg(int(coord[0]))
-        msg.add_arg(int(coord[1]))
+
+        if self.cola_X_L.count == self.cola_X_L.size:
+            msg.add_arg(int(self.cola_X_L.calcular_media()))
+            msg.add_arg(int(self.cola_Y_L.calcular_media())) 
+        else:
+            msg.add_arg(int(coord[0]))
+            msg.add_arg(int(coord[1]))
+         
         msg = msg.build()
 
         self.client.send(msg)
