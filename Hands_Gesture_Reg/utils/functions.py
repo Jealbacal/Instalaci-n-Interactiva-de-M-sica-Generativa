@@ -155,5 +155,5 @@ def frame_imagen():
     cv2.imshow("Frame", imagen)
 
     # Refresca la ventana
-    cv2.waitKey(35000)
+    cv2.waitKey(30000)
 
