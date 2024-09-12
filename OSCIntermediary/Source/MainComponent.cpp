@@ -337,7 +337,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
             break;
 
         case MainComponent::handGesture::thumbUp:
-            if (! senderOR.send ("/juce/OR/bypassDry", 0.0f))
+            if (! senderOR.send ("/juce/OR/bypassWet", 0.0f))
             {
                 e = "Error: could not send bypassDry off to OrilRiver";
                 return false;
@@ -346,7 +346,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
             break;
 
         case MainComponent::handGesture::thumbDown:
-            if (! senderOR.send ("/juce/OR/bypassDry", 1.0f))
+            if (! senderOR.send ("/juce/OR/bypassWet", 1.0f))
             {
                 e = "Error: could not send bypassDry on to OrilRiver";
                 return false;
@@ -386,7 +386,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
             break;
 
         case MainComponent::handGesture::thumbUp:
-            if (! senderOR.send ("/juce/OR/bypassWet", 0.0f))
+            if (! senderOR.send ("/juce/OR/bypassDry", 0.0f))
             {
                 e = "Error: could not send bypassWet off to OrilRiver";
                 return false;
@@ -395,7 +395,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
             break;
 
         case MainComponent::handGesture::thumbDown:
-            if (! senderOR.send ("/juce/OR/bypassWet", 1.0f))
+            if (! senderOR.send ("/juce/OR/bypassDry", 1.0f))
             {
                 e = "Error: could not send bypassWet on to OrilRiver";
                 return false;
