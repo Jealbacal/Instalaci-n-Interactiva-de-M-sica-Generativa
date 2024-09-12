@@ -27,32 +27,32 @@ MainComponent::MainComponent()
     addListener (this, "/mediapipe/posL");
     addListener (this, "/mediapipe/posR");
 
-    testSlider.setRange        (0.1f, 100.0f);
-    testSlider.setSliderStyle  (juce::Slider::LinearHorizontal);
-    testSlider.setTextBoxStyle (juce::Slider::TextBoxAbove, true, 150, 25);
-    addAndMakeVisible (&testSlider);
+    //testSlider.setRange        (0.1f, 100.0f);
+    //testSlider.setSliderStyle  (juce::Slider::LinearHorizontal);
+    //testSlider.setTextBoxStyle (juce::Slider::TextBoxAbove, true, 150, 25);
+    //addAndMakeVisible (&testSlider);
 
-    testCombo.setText ("Preset:");
-    testCombo.addItem ("1", 1);
-    testCombo.addItem ("2", 2);
-    testCombo.addItem ("3", 3);
-    testCombo.addItem ("4", 4);
-    testCombo.addItem ("7", 7);
-    testCombo.addItem ("10", 10);
-    addAndMakeVisible (&testCombo);
+    //testCombo.setText ("Preset:");
+    //testCombo.addItem ("1", 1);
+    //testCombo.addItem ("2", 2);
+    //testCombo.addItem ("3", 3);
+    //testCombo.addItem ("4", 4);
+    //testCombo.addItem ("7", 7);
+    //testCombo.addItem ("10", 10);
+    //addAndMakeVisible (&testCombo);
 
-    testCombo.onChange = [this]
-        {
-            if (! senderEC2.send ("/juce/preset", (float) testCombo.getSelectedId()))
-                showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
-        };
+    //testCombo.onChange = [this]
+    //    {
+    //        if (! senderEC2.send ("/juce/preset", (float) testCombo.getSelectedId()))
+    //            showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
+    //    };
 
-    testSlider.onValueChange = [this]
-        {
-            // create and send an OSC message with an address and a float value:
-            if (! senderOR.send ("/juce/dry", juce::jmap ((float) testSlider.getValue(), 0.1f, 100.0f, 0.0f, 1.0f)))
-                showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
-        };
+    //testSlider.onValueChange = [this]
+    //    {
+    //        // create and send an OSC message with an address and a float value:
+    //        if (! senderOR.send ("/juce/dry", juce::jmap ((float) testSlider.getValue(), 0.1f, 100.0f, 0.0f, 1.0f)))
+    //            showConnectionErrorMessage ("Error: could not send OSC message to Emission Control 2");
+    //    };
 
     if (! senderEC2.connect ("127.0.0.1", 7501))
         showConnectionErrorMessage ("Error: could not connect Emission Control 2 sender to UDP port 7501");
@@ -75,10 +75,10 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized()
 {
-    auto logScreenHeight = 340;
+    //auto logScreenHeight = 340;
 
-    auto area          = getLocalBounds();
-    auto logScreenArea = area.removeFromBottom (logScreenHeight);
+    //auto area          = getLocalBounds();
+    auto logScreenArea = getLocalBounds();//area.removeFromBottom (logScreenHeight);
 
     logScreenL.setBounds (logScreenArea.removeFromLeft (
                           logScreenArea.getWidth() / 2)
@@ -86,9 +86,9 @@ void MainComponent::resized()
 
     logScreenR.setBounds (logScreenArea.reduced (5));
 
-    testCombo.setBounds (area.removeFromLeft (area.getWidth() / 2).reduced (10));
+    //testCombo.setBounds (area.removeFromLeft (area.getWidth() / 2).reduced (10));
 
-    testSlider.setBounds (area.reduced (10));
+    //testSlider.setBounds (area.reduced (10));
 }
 
 //===============================================================================
@@ -149,13 +149,13 @@ void MainComponent::oscMessageReceived (const juce::OSCMessage& message)
     logScreenR.clear();
 
     logMessage (" -- Gesture -> "         + juce::String (leftHand.gesture), 0);
-    logMessage (" -- Hand -> 0",                                             0);
+    logMessage (" -- Hand -> Left",                                          0);
     logMessage (" -- X position -> "      + juce::String (leftHand.x),       0);
     logMessage (" -- Y position -> "      + juce::String (leftHand.y),       0);
     logMessage (" -- Numeric gesture -> " + juce::String (leftHand.numeric), 0);
 
     logMessage (" -- Gesture -> "         + juce::String (rightHand.gesture), 1);
-    logMessage (" -- Hand -> 1",                                              1);
+    logMessage (" -- Hand -> Right",                                          1);
     logMessage (" -- X position -> "      + juce::String (rightHand.x),       1);
     logMessage (" -- Y position -> "      + juce::String (rightHand.y),       1);
     logMessage (" -- Numeric gesture -> " + juce::String (rightHand.numeric), 1);
@@ -249,29 +249,29 @@ void MainComponent::logMessage (const juce::String& m, int hand)
 }
 
 //==============================================================================
-void MainComponent::handleConnectError (int failedPort)
-{
-    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
-                                            "OSC Connection error",
-                                            "Error: could not connect to port " + juce::String (failedPort),
-                                            "OK");
-}
-
-void MainComponent::handleDisconnectError()
-{
-    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
-                                            "Unknown error",
-                                            "An unknown error occured while trying to disconnect from UDP port.",
-                                            "OK");
-}
-
-void MainComponent::handleInvalidPortNumberEntered()
-{
-    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
-                                            "Invalid port number",
-                                            "Error: you have entered an invalid UDP port number.",
-                                            "OK");
-}
+//void MainComponent::handleConnectError (int failedPort)
+//{
+//    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
+//                                            "OSC Connection error",
+//                                            "Error: could not connect to port " + juce::String (failedPort),
+//                                            "OK");
+//}
+//
+//void MainComponent::handleDisconnectError()
+//{
+//    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
+//                                            "Unknown error",
+//                                            "An unknown error occured while trying to disconnect from UDP port.",
+//                                            "OK");
+//}
+//
+//void MainComponent::handleInvalidPortNumberEntered()
+//{
+//    juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::WarningIcon,
+//                                            "Invalid port number",
+//                                            "Error: you have entered an invalid UDP port number.",
+//                                            "OK");
+//}
 
 //=============================================================================
 /**

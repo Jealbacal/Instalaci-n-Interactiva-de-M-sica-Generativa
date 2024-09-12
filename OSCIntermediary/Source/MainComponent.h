@@ -68,9 +68,9 @@ private:
     juce::TextEditor logScreenL,
                      logScreenR;
 
-    juce::Slider testSlider;
+ /*   juce::Slider testSlider;
 
-    juce::ComboBox testCombo;
+    juce::ComboBox testCombo;*/
 
     juce::OSCSender senderEC2; // The sender for EmissionControl2
     juce::OSCSender senderOR;  // The sender for OrilRiver
@@ -80,10 +80,10 @@ private:
     void showArgumentErrorMessage   (const juce::String&);
     void logMessage                 (const juce::String&, int);
 
-    //==============================================================================
-    void handleConnectError (int);
-    void handleDisconnectError();
-    void handleInvalidPortNumberEntered();
+    ////==============================================================================
+    //void handleConnectError (int);
+    //void handleDisconnectError();
+    //void handleInvalidPortNumberEntered();
 
     //==============================================================================
     void updateHands (handParams_old&, int, int, int, int, int);
