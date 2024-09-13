@@ -339,7 +339,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
         case MainComponent::handGesture::thumbUp:
             if (! senderOR.send ("/juce/OR/bypassWet", 0.0f))
             {
-                e = "Error: could not send bypassDry off to OrilRiver";
+                e = "Error: could not send bypassWet off to OrilRiver";
                 return false;
             }
 
@@ -348,7 +348,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
         case MainComponent::handGesture::thumbDown:
             if (! senderOR.send ("/juce/OR/bypassWet", 1.0f))
             {
-                e = "Error: could not send bypassDry on to OrilRiver";
+                e = "Error: could not send bypassWet on to OrilRiver";
                 return false;
             }
 
@@ -388,7 +388,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
         case MainComponent::handGesture::thumbUp:
             if (! senderOR.send ("/juce/OR/bypassDry", 0.0f))
             {
-                e = "Error: could not send bypassWet off to OrilRiver";
+                e = "Error: could not send bypassDry off to OrilRiver";
                 return false;
             }
 
@@ -397,7 +397,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
         case MainComponent::handGesture::thumbDown:
             if (! senderOR.send ("/juce/OR/bypassDry", 1.0f))
             {
-                e = "Error: could not send bypassWet on to OrilRiver";
+                e = "Error: could not send bypassDry on to OrilRiver";
                 return false;
             }
 
@@ -419,7 +419,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderOR.send("/juce/OR/width", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            if (!senderOR.send ("/juce/OR/width", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
             {
                 e = "Error: could not send width to Oril River";
                 return false;
@@ -434,7 +434,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderOR.send("/juce/OR/modSpeed", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 0.9f)))
+            if (!senderOR.send ("/juce/OR/modSpeed", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 0.9f)))
             {
                 e = "Error: could not send mod. speed to Oril River";
                 return false;
@@ -449,7 +449,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderOR.send("/juce/OR/highGain", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
+            if (!senderOR.send ("/juce/OR/highGain", juce::jmap ((float) leftHand.y, 0.0f, 600.0f, 0.0f, 1.0f)))
             {
                 e = "Error: could not send high gain to Oril River";
                 return false;
@@ -473,7 +473,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderEC2.send("/juce/EC2/filterQ", (float) rightHand.y))
+            if (!senderEC2.send ("/juce/EC2/filterQ", (float) rightHand.y))
             {
                 e = "Error: could not send filter Q to Emission Control 2";
                 return false;
@@ -488,7 +488,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderEC2.send("/juce/EC2/grainDuration", (float) rightHand.y))
+            if (!senderEC2.send ("/juce/EC2/grainDuration", (float) rightHand.y))
             {
                 e = "Error: could not send grain duration to Emission Control 2";
                 return false;
@@ -503,7 +503,7 @@ bool MainComponent::resend (fromAddress address, juce::String& e)
                 return false;
             }
 
-            if (!senderEC2.send("/juce/EC2/envelopeShape", (float) rightHand.y))
+            if (!senderEC2.send ("/juce/EC2/envelopeShape", (float) rightHand.y))
             {
                 e = "Error: could not send envelope shape to Emission Control 2";
                 return false;
